@@ -65,6 +65,7 @@ class _WeekSelectorBarState extends State<WeekSelectorBar> {
               Padding(
                 padding: const EdgeInsets.only(right: 8),
                 child: ChoiceChip(
+                  showCheckmark: false,
                   key: week.start == widget.selectedWeekStart
                       ? _selectedKey
                       : null,
@@ -73,8 +74,8 @@ class _WeekSelectorBarState extends State<WeekSelectorBar> {
                   avatar: CircleAvatar(
                     backgroundColor: week.color == WeekColor.red
                         ? Colors.red
-                        : Colors.black87,
-                    radius: 5,
+                        : Colors.black,
+                    radius: 8,
                   ),
                   onSelected: (_) => widget.onWeekSelected(week.start),
                 ),
