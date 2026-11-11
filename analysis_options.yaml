@@ -1,0 +1,16 @@
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  exclude:
+    - build/**
+    - android/**
+    - windows/**
+    - linux/**
+
+linter:
+  rules:
+    - avoid_print
+    - prefer_double_quotes
+    - cancel_subscriptions
+    - unawaited_futures
+    - always_declare_return_types
