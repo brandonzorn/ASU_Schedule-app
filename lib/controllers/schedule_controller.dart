@@ -110,11 +110,11 @@ class ScheduleController extends ChangeNotifier {
     selectedCourse = course;
     selectedGroupId = groupId;
     selectedTeacherId = teacherId;
-    await _storage.saveFilters(
-      course: course,
-      groupId: groupId,
-      teacherId: teacherId,
-    );
+    try {
+      await _storage.saveFilters(course: course, groupId: groupId, teacherId: teacherId);
+    } catch (_) {
+      // Не удалось сохранить фильтры - расписание всё равно загружаем.
+    }
     await loadSchedule();
   }
 }
