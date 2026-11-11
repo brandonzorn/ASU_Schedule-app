@@ -7,6 +7,18 @@ class StorageService {
   static const _groupKey = "saved_group";
   static const _teacherKey = "saved_teacher";
 
+  static const _themeKey = "theme_mode";
+
+  Future<String?> loadThemeMode() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_themeKey);
+  }
+
+  Future<void> saveThemeMode(String name) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_themeKey, name);
+  }
+
   Future<({int? course, int? groupId, int? teacherId})>
   loadSavedFilters() async {
     final prefs = await SharedPreferences.getInstance();

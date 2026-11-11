@@ -74,7 +74,7 @@ class _WeekSelectorBarState extends State<WeekSelectorBar> {
                   avatar: CircleAvatar(
                     backgroundColor: week.color == WeekColor.red
                         ? Colors.red
-                        : Colors.black,
+                        : Theme.of(context).colorScheme.onSurface,
                     radius: 8,
                   ),
                   onSelected: (_) => widget.onWeekSelected(week.start),

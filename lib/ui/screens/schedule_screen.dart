@@ -3,6 +3,7 @@ import "dart:async";
 import "package:flutter/material.dart";
 
 import "../../controllers/schedule_controller.dart";
+import "../../controllers/theme_controller.dart";
 import "../../models/enums.dart";
 import "../../utils/date_format.dart";
 import "../widgets/day_schedule_card.dart";
@@ -11,8 +12,13 @@ import "../widgets/week_selector_bar.dart";
 
 class ScheduleScreen extends StatelessWidget {
   final ScheduleController controller;
+  final ThemeController themeController;
 
-  const ScheduleScreen({super.key, required this.controller});
+  const ScheduleScreen({
+    super.key,
+    required this.controller,
+    required this.themeController,
+  });
 
   static const _weekdays = [
     "Понедельник",
@@ -29,6 +35,12 @@ class ScheduleScreen extends StatelessWidget {
     final day = d.day.toString().padLeft(2, "0");
     return "${d.year.toString().padLeft(4, "0")}-$month-$day";
   }
+
+  static IconData _themeIcon(ThemeMode mode) => switch (mode) {
+    ThemeMode.system => Icons.brightness_auto,
+    ThemeMode.light => Icons.light_mode,
+    ThemeMode.dark => Icons.dark_mode,
+  };
 
   void _showFilters(BuildContext context) {
     final filters = controller.schedule?.filters;
@@ -53,10 +65,11 @@ class ScheduleScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: controller,
+      listenable: Listenable.merge([controller, themeController]),
       builder: (context, _) {
         final currentWeek = controller.currentWeekItem;
         final colorScheme = Theme.of(context).colorScheme;
+        final isDark = Theme.of(context).brightness == Brightness.dark;
 
         return Scaffold(
           appBar: AppBar(
@@ -69,7 +82,7 @@ class ScheduleScreen extends StatelessWidget {
                     "${currentWeek.number} неделя • ${currentWeek.color.label}",
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: currentWeek.color == WeekColor.red
-                          ? Colors.red[700]
+                          ? (isDark ? Colors.red[300] : Colors.red[700])
                           : colorScheme.onSurfaceVariant,
                       fontWeight: FontWeight.w600,
                     ),
@@ -77,6 +90,21 @@ class ScheduleScreen extends StatelessWidget {
               ],
             ),
             actions: [
+              PopupMenuButton<ThemeMode>(
+                icon: Icon(_themeIcon(themeController.themeMode)),
+                tooltip: "Тема оформления",
+                initialValue: themeController.themeMode,
+                onSelected: (mode) =>
+                    unawaited(themeController.setThemeMode(mode)),
+                itemBuilder: (_) => const [
+                  PopupMenuItem(
+                    value: ThemeMode.system,
+                    child: Text("Как в системе"),
+                  ),
+                  PopupMenuItem(value: ThemeMode.light, child: Text("Светлая")),
+                  PopupMenuItem(value: ThemeMode.dark, child: Text("Тёмная")),
+                ],
+              ),
               IconButton(
                 icon: const Icon(Icons.tune),
                 tooltip: "Фильтры",

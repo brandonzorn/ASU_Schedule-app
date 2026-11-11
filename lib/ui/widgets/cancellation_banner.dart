@@ -9,6 +9,12 @@ class CancellationBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final background = isDark
+        ? Colors.amber.shade900.withValues(alpha: 0.35)
+        : Colors.amber.shade100;
+    final foreground = isDark ? Colors.amber.shade100 : Colors.black;
+
     final text = cancellation.pairs.isEmpty
         ? "Занятия отменены (${cancellation.scope}): ${cancellation.reason}"
         : "Отменены пары ${cancellation.pairs.join(", ")} "
@@ -19,20 +25,17 @@ class CancellationBanner extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: Colors.amber.shade100,
+        color: background,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
         children: [
-          const Icon(Icons.info_outline, size: 18, color: Colors.black87),
+          Icon(Icons.info_outline, size: 18, color: foreground),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               text,
-              style: const TextStyle(
-                fontWeight: FontWeight.w500,
-                color: Colors.black87,
-              ),
+              style: TextStyle(fontWeight: FontWeight.w500, color: foreground),
             ),
           ),
         ],
