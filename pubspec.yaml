@@ -4,7 +4,7 @@ description: "Расписание АГУ."
 publish_to: 'none'
 
 
-version: 1.0.1+1
+version: 1.0.1+2
 
 environment:
   sdk: ^3.13.7
@@ -22,6 +22,18 @@ dev_dependencies:
     sdk: flutter
 
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
+
+flutter_launcher_icons:
+  android: true
+  min_sdk_android: 29
+
+  image_path: "assets/icon/icon.png"
+  adaptive_icon_foreground: "assets/icon/icon_foreground.png"
+
+  windows:
+    generate: true
+    icon_size: 48
 
 flutter:
   uses-material-design: true
