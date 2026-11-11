@@ -1,24 +1,24 @@
 import "dart:async";
 
+import "package:asu_schedule/controllers/schedule_controller.dart";
+import "package:asu_schedule/controllers/theme_controller.dart";
+import "package:asu_schedule/i18n/app_localizations.dart";
+import "package:asu_schedule/services/schedion_api_service.dart";
+import "package:asu_schedule/services/storage_service.dart";
+import "package:asu_schedule/ui/screens/schedule_screen.dart";
+import "package:dynamic_color/dynamic_color.dart";
 import "package:material_ui/material_ui.dart";
-
-import "i18n/app_localizations.dart";
-import "controllers/schedule_controller.dart";
-import "controllers/theme_controller.dart";
-import "services/schedion_api_service.dart";
-import "services/storage_service.dart";
-import "ui/screens/schedule_screen.dart";
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  final storageService = StorageService();
-  final apiService = SchedionApiService(storageService);
+  final StorageService storageService = StorageService();
+  final SchedionApiService apiService = SchedionApiService(storageService);
 
-  final themeController = ThemeController(storageService);
+  final ThemeController themeController = ThemeController(storageService);
   await themeController.initialize();
 
-  final scheduleController = ScheduleController(
+  final ScheduleController scheduleController = ScheduleController(
     api: apiService,
     storage: storageService,
   );
@@ -37,20 +37,18 @@ class SchedionApp extends StatelessWidget {
   final ThemeController themeController;
 
   const SchedionApp({
-    super.key,
     required this.controller,
     required this.themeController,
+    super.key,
   });
 
-  static const _seedColor = Color(0xFF2563EB);
+  static const Color _seedColor = Color(0xFF2563EB);
 
-  ThemeData _buildTheme(Brightness brightness) {
+  ThemeData _buildTheme(Brightness brightness, ColorScheme? dynamicScheme) {
     return ThemeData(
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: _seedColor,
-        brightness: brightness,
-      ),
-      useMaterial3: true,
+      colorScheme:
+          dynamicScheme?.harmonized() ??
+          ColorScheme.fromSeed(seedColor: _seedColor, brightness: brightness),
     );
   }
 
@@ -58,20 +56,24 @@ class SchedionApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListenableBuilder(
       listenable: themeController,
-      builder: (context, _) => MaterialApp(
-        onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
-        theme: _buildTheme(Brightness.light),
-        darkTheme: _buildTheme(Brightness.dark),
-        themeMode: themeController.themeMode,
-        localizationsDelegates: [
-          AppLocalizations.delegate,
-          ...GlobalMaterialLocalizations.delegates,
-        ],
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: ScheduleScreen(
-          controller: controller,
-          themeController: themeController,
-        ),
+      builder: (BuildContext context, _) => DynamicColorBuilder(
+        builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) =>
+            MaterialApp(
+              onGenerateTitle: (BuildContext context) =>
+                  AppLocalizations.of(context)!.appTitle,
+              theme: _buildTheme(Brightness.light, lightDynamic),
+              darkTheme: _buildTheme(Brightness.dark, darkDynamic),
+              themeMode: themeController.themeMode,
+              localizationsDelegates: const <LocalizationsDelegate<dynamic>>[
+                AppLocalizations.delegate,
+                ...GlobalMaterialLocalizations.delegates,
+              ],
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: ScheduleScreen(
+                controller: controller,
+                themeController: themeController,
+              ),
+            ),
       ),
     );
   }

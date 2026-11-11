@@ -1,7 +1,6 @@
+import "package:asu_schedule/i18n/app_localizations.dart";
+import "package:asu_schedule/models/schedule_models.dart";
 import "package:material_ui/material_ui.dart";
-
-import "../../i18n/app_localizations.dart";
-import "../../models/schedule_models.dart";
 
 class FilterBottomSheet extends StatefulWidget {
   final ScheduleFilters filters;
@@ -11,12 +10,12 @@ class FilterBottomSheet extends StatefulWidget {
   final void Function({int? course, int? groupId, int? teacherId}) onApply;
 
   const FilterBottomSheet({
-    super.key,
     required this.filters,
+    required this.onApply,
+    super.key,
     this.initialCourse,
     this.initialGroupId,
     this.initialTeacherId,
-    required this.onApply,
   });
 
   @override
@@ -41,22 +40,23 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final i18n = AppLocalizations.of(context)!;
-    final textTheme = Theme.of(context).textTheme;
-    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
+    final AppLocalizations i18n = AppLocalizations.of(context)!;
+    final TextTheme textTheme = Theme.of(context).textTheme;
+    final double bottomInset = MediaQuery.viewInsetsOf(context).bottom;
 
-    final availableGroups = widget.filters.groups
-        .where((g) => _course == null || g.course == _course)
+    final List<GroupItem> availableGroups = widget.filters.groups
+        .where((GroupItem g) => _course == null || g.course == _course)
         .toList();
 
-    final validCourse = widget.filters.courses.contains(_course)
+    final int? validCourse = widget.filters.courses.contains(_course)
         ? _course
         : null;
-    final validGroupId = availableGroups.any((g) => g.id == _groupId)
+    final int? validGroupId =
+        availableGroups.any((GroupItem g) => g.id == _groupId)
         ? _groupId
         : null;
-    final validTeacherId =
-        widget.filters.teachers.any((t) => t.id == _teacherId)
+    final int? validTeacherId =
+        widget.filters.teachers.any((TeacherItem t) => t.id == _teacherId)
         ? _teacherId
         : null;
 
@@ -67,10 +67,10 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           spacing: 16,
-          children: [
+          children: <Widget>[
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
+              children: <Widget>[
                 Text(i18n.filtersTitle, style: textTheme.titleLarge),
                 if (_hasActiveFilters)
                   TextButton(onPressed: _resetFilters, child: Text(i18n.reset)),
@@ -78,54 +78,53 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
             ),
 
             DropdownMenu<int?>(
-              key: ValueKey("course_$validCourse"),
+              key: ValueKey<String>("course_$validCourse"),
               expandedInsets: EdgeInsets.zero,
               initialSelection: validCourse,
               label: Text(i18n.courseLabel),
-              dropdownMenuEntries: [
-                DropdownMenuEntry(value: null, label: i18n.allCourses),
-                for (final c in widget.filters.courses)
-                  DropdownMenuEntry(value: c, label: i18n.courseNumber(c)),
+              selectOnly: true,
+              dropdownMenuEntries: <DropdownMenuEntry<int?>>[
+                DropdownMenuEntry<int?>(value: null, label: i18n.allCourses),
+                for (final int c in widget.filters.courses)
+                  DropdownMenuEntry<int>(value: c, label: i18n.courseNumber(c)),
               ],
-              onSelected: (val) => setState(() {
+              onSelected: (int? val) => setState(() {
                 _course = val;
                 _groupId = null;
               }),
             ),
 
             DropdownMenu<int?>(
-              key: ValueKey("group_${validCourse}_$validGroupId"),
+              key: ValueKey<String>("group_${validCourse}_$validGroupId"),
               expandedInsets: EdgeInsets.zero,
               menuHeight: 300,
-              enableFilter: true,
-              requestFocusOnTap: true,
+              selectOnly: true,
               initialSelection: validGroupId,
               label: Text(i18n.groupLabel),
-              dropdownMenuEntries: [
-                DropdownMenuEntry(value: null, label: i18n.allGroups),
-                for (final g in availableGroups)
-                  DropdownMenuEntry(value: g.id, label: g.name),
+              dropdownMenuEntries: <DropdownMenuEntry<int?>>[
+                DropdownMenuEntry<int?>(value: null, label: i18n.allGroups),
+                for (final GroupItem g in availableGroups)
+                  DropdownMenuEntry<int>(value: g.id, label: g.name),
               ],
-              onSelected: (val) => setState(() => _groupId = val),
+              onSelected: (int? val) => setState(() => _groupId = val),
             ),
 
             DropdownMenu<int?>(
-              key: ValueKey("teacher_$validTeacherId"),
+              key: ValueKey<String>("teacher_$validTeacherId"),
               expandedInsets: EdgeInsets.zero,
               menuHeight: 300,
-              enableFilter: true,
-              requestFocusOnTap: true,
+              selectOnly: true,
               initialSelection: validTeacherId,
               label: Text(i18n.teacherLabel),
-              dropdownMenuEntries: [
-                DropdownMenuEntry(value: null, label: i18n.allTeachers),
-                for (final t in widget.filters.teachers)
-                  DropdownMenuEntry(
+              dropdownMenuEntries: <DropdownMenuEntry<int?>>[
+                DropdownMenuEntry<int?>(value: null, label: i18n.allTeachers),
+                for (final TeacherItem t in widget.filters.teachers)
+                  DropdownMenuEntry<int>(
                     value: t.id,
                     label: t.shortName ?? t.fullName,
                   ),
               ],
-              onSelected: (val) => setState(() => _teacherId = val),
+              onSelected: (int? val) => setState(() => _teacherId = val),
             ),
 
             const SizedBox(height: 4),

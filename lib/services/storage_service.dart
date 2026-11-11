@@ -3,25 +3,25 @@ import "dart:convert";
 import "package:shared_preferences/shared_preferences.dart";
 
 class StorageService {
-  static const _courseKey = "saved_course";
-  static const _groupKey = "saved_group";
-  static const _teacherKey = "saved_teacher";
+  static const String _courseKey = "saved_course";
+  static const String _groupKey = "saved_group";
+  static const String _teacherKey = "saved_teacher";
 
-  static const _themeKey = "theme_mode";
+  static const String _themeKey = "theme_mode";
 
   Future<String?> loadThemeMode() async {
-    final prefs = await SharedPreferences.getInstance();
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
     return prefs.getString(_themeKey);
   }
 
   Future<void> saveThemeMode(String name) async {
-    final prefs = await SharedPreferences.getInstance();
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString(_themeKey, name);
   }
 
   Future<({int? course, int? groupId, int? teacherId})>
   loadSavedFilters() async {
-    final prefs = await SharedPreferences.getInstance();
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
     return (
       course: prefs.getInt(_courseKey),
       groupId: prefs.getInt(_groupKey),
@@ -42,25 +42,29 @@ class StorageService {
   }
 
   Future<void> saveFilters({int? course, int? groupId, int? teacherId}) async {
-    final prefs = await SharedPreferences.getInstance();
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
     await _setOrRemove(prefs, _courseKey, course);
     await _setOrRemove(prefs, _groupKey, groupId);
     await _setOrRemove(prefs, _teacherKey, teacherId);
   }
 
   Future<void> saveJsonCache(String key, Map<String, dynamic> data) async {
-    final prefs = await SharedPreferences.getInstance();
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString(key, jsonEncode(data));
   }
 
   Future<Map<String, dynamic>?> getJsonCache(String key) async {
-    final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(key);
-    if (raw == null) return null;
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String? raw = prefs.getString(key);
+    if (raw == null) {
+      return null;
+    }
 
     try {
-      final decoded = jsonDecode(raw);
-      if (decoded is Map<String, dynamic>) return decoded;
+      final dynamic decoded = jsonDecode(raw);
+      if (decoded is Map<String, dynamic>) {
+        return decoded;
+      }
     } on FormatException {
       // Выбрасываем поврежденный кэш
     }

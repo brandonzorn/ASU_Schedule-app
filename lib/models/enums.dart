@@ -1,4 +1,4 @@
-import "../i18n/app_localizations.dart";
+import "package:asu_schedule/i18n/app_localizations.dart";
 
 enum LessonKind {
   none("Не указан"),
@@ -22,7 +22,7 @@ enum LessonKind {
 
   static LessonKind fromString(String? value) {
     return LessonKind.values.firstWhere(
-      (e) => e.name == value,
+      (LessonKind e) => e.name == value,
       orElse: () => LessonKind.none,
     );
   }

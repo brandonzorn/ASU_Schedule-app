@@ -1,4 +1,4 @@
-import "enums.dart";
+import "package:asu_schedule/models/enums.dart";
 
 String _hoursMinutes(String time) =>
     time.length >= 5 ? time.substring(0, 5) : time;

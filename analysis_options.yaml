@@ -14,9 +14,36 @@ analyzer:
 
 linter:
   rules:
-    - avoid_print
+    - always_declare_return_types
+    - always_put_control_body_on_new_line
+    - always_put_required_named_parameters_first
+    - always_use_package_imports
+    - async_return_with_no_await
+    - avoid_annotating_with_dynamic
+    - avoid_bool_literals_in_conditional_expressions
+    - avoid_escaping_inner_quotes
+    - avoid_final_parameters
+    - avoid_multiple_declarations_per_line
+    - avoid_void_async
+    - cascade_invocations
+    - cast_nullable_to_non_nullable
+    - combinators_ordering
+    - deprecated_member_use_from_same_package
+    - directives_ordering
+    - discarded_futures
+    - empty_container_bodies
+    - eol_at_end_of_file
+    - invalid_case_patterns
+    - no_literal_bool_comparisons
+    - prefer_const_declarations
+    - prefer_const_literals_to_create_immutables
+    - prefer_final_in_for_each
+    - prefer_foreach
     - prefer_double_quotes
     - cancel_subscriptions
     - unawaited_futures
-    - always_declare_return_types
+    - require_trailing_commas
     - migrate_design_widgets
+    - use_colored_box
+    - use_decorated_box
+    - use_enums

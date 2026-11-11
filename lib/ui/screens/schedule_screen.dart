@@ -1,25 +1,25 @@
 import "dart:async";
 
+import "package:asu_schedule/controllers/schedule_controller.dart";
+import "package:asu_schedule/controllers/theme_controller.dart";
+import "package:asu_schedule/i18n/app_localizations.dart";
+import "package:asu_schedule/models/enums.dart";
+import "package:asu_schedule/models/reference_models.dart";
+import "package:asu_schedule/models/schedule_models.dart";
+import "package:asu_schedule/ui/widgets/day_schedule_card.dart";
+import "package:asu_schedule/ui/widgets/filter_bottom_sheet.dart";
+import "package:asu_schedule/ui/widgets/week_selector_bar.dart";
+import "package:asu_schedule/utils/date_format.dart";
 import "package:material_ui/material_ui.dart";
-
-import "../../controllers/schedule_controller.dart";
-import "../../controllers/theme_controller.dart";
-import "../../i18n/app_localizations.dart";
-import "../../models/enums.dart";
-import "../../models/schedule_models.dart";
-import "../../utils/date_format.dart";
-import "../widgets/day_schedule_card.dart";
-import "../widgets/filter_bottom_sheet.dart";
-import "../widgets/week_selector_bar.dart";
 
 class ScheduleScreen extends StatelessWidget {
   final ScheduleController controller;
   final ThemeController themeController;
 
   const ScheduleScreen({
-    super.key,
     required this.controller,
     required this.themeController,
+    super.key,
   });
 
   static String _weekdayName(AppLocalizations i18n, int index) =>
@@ -35,19 +35,25 @@ class ScheduleScreen extends StatelessWidget {
       };
 
   static String _formatErrorMessage(AppLocalizations i18n, String msg) {
-    if (msg == "errorConnection") return i18n.errorConnection;
-    if (msg == "errorInvalidData") return i18n.errorInvalidData;
-    if (msg == "errorRequest") return i18n.errorRequest;
+    if (msg == "errorConnection") {
+      return i18n.errorConnection;
+    }
+    if (msg == "errorInvalidData") {
+      return i18n.errorInvalidData;
+    }
+    if (msg == "errorRequest") {
+      return i18n.errorRequest;
+    }
     if (msg.startsWith("errorServer:")) {
-      final status = msg.substring("errorServer:".length);
+      final String status = msg.substring("errorServer:".length);
       return i18n.errorServer(status);
     }
     return msg;
   }
 
   static String _isoDate(DateTime d) {
-    final month = d.month.toString().padLeft(2, "0");
-    final day = d.day.toString().padLeft(2, "0");
+    final String month = d.month.toString().padLeft(2, "0");
+    final String day = d.day.toString().padLeft(2, "0");
     return "${d.year.toString().padLeft(4, "0")}-$month-$day";
   }
 
@@ -57,15 +63,17 @@ class ScheduleScreen extends StatelessWidget {
     ThemeMode.dark => Icons.dark_mode_outlined,
   };
 
-  int get _activeFiltersCount => [
+  int get _activeFiltersCount => <int?>[
     controller.selectedCourse,
     controller.selectedGroupId,
     controller.selectedTeacherId,
   ].whereType<int>().length;
 
   void _showFilters(BuildContext context) {
-    final filters = controller.schedule?.filters;
-    if (filters == null) return;
+    final ScheduleFilters? filters = controller.schedule?.filters;
+    if (filters == null) {
+      return;
+    }
 
     unawaited(
       showModalBottomSheet<void>(
@@ -86,20 +94,23 @@ class ScheduleScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final i18n = AppLocalizations.of(context)!;
+    final AppLocalizations i18n = AppLocalizations.of(context)!;
     return ListenableBuilder(
-      listenable: Listenable.merge([controller, themeController]),
-      builder: (context, _) {
-        final currentWeek = controller.currentWeekItem;
-        final textTheme = Theme.of(context).textTheme;
-        final colorScheme = Theme.of(context).colorScheme;
-        final filterCount = _activeFiltersCount;
+      listenable: Listenable.merge(<Listenable?>[controller, themeController]),
+      builder: (BuildContext context, _) {
+        final WeekItem? currentWeek = controller.currentWeekItem;
+        final TextTheme textTheme = Theme.of(context).textTheme;
+        final ColorScheme colorScheme = Theme.of(context).colorScheme;
+        final int filterCount = _activeFiltersCount;
 
         return Scaffold(
           appBar: AppBar(
+            backgroundColor: colorScheme.surfaceContainer,
+            surfaceTintColor: Colors.transparent,
+            scrolledUnderElevation: 0,
             title: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+              children: <Widget>[
                 Text(i18n.scheduleTitle),
                 if (currentWeek != null)
                   Text(
@@ -111,42 +122,51 @@ class ScheduleScreen extends StatelessWidget {
                       color: currentWeek.color == WeekColor.red
                           ? colorScheme.error
                           : colorScheme.onSurfaceVariant,
-                      fontWeight: FontWeight.w600,
                     ),
                   ),
               ],
             ),
-            actions: [
+            actions: <Widget>[
               MenuAnchor(
-                builder: (context, menuController, child) => IconButton(
-                  icon: Icon(_themeIcon(themeController.themeMode)),
-                  tooltip: i18n.themeTooltip,
-                  onPressed: () {
-                    if (menuController.isOpen) {
-                      menuController.close();
-                    } else {
-                      menuController.open();
-                    }
-                  },
-                ),
-                menuChildren: [
-                  for (final (mode, label, icon) in [
+                builder:
                     (
-                      ThemeMode.system,
-                      i18n.themeSystem,
-                      Icons.brightness_auto_outlined,
+                      BuildContext context,
+                      MenuController menuController,
+                      Widget? child,
+                    ) => IconButton(
+                      icon: Icon(_themeIcon(themeController.themeMode)),
+                      tooltip: i18n.themeTooltip,
+                      onPressed: () {
+                        if (menuController.isOpen) {
+                          menuController.close();
+                        } else {
+                          menuController.open();
+                        }
+                      },
                     ),
-                    (
-                      ThemeMode.light,
-                      i18n.themeLight,
-                      Icons.light_mode_outlined,
-                    ),
-                    (ThemeMode.dark, i18n.themeDark, Icons.dark_mode_outlined),
-                  ])
+                menuChildren: <Widget>[
+                  for (final (ThemeMode mode, String label, IconData icon)
+                      in <(ThemeMode, String, IconData)>[
+                        (
+                          ThemeMode.system,
+                          i18n.themeSystem,
+                          Icons.brightness_auto_outlined,
+                        ),
+                        (
+                          ThemeMode.light,
+                          i18n.themeLight,
+                          Icons.light_mode_outlined,
+                        ),
+                        (
+                          ThemeMode.dark,
+                          i18n.themeDark,
+                          Icons.dark_mode_outlined,
+                        ),
+                      ])
                     MenuItemButton(
                       leadingIcon: Icon(icon),
                       trailingIcon: themeController.themeMode == mode
-                          ? const Icon(Icons.check, size: 18)
+                          ? const Icon(Icons.check)
                           : null,
                       onPressed: () =>
                           unawaited(themeController.setThemeMode(mode)),
@@ -184,24 +204,26 @@ class ScheduleScreen extends StatelessWidget {
   }
 
   Widget _buildContent(BuildContext context) {
-    final i18n = AppLocalizations.of(context)!;
+    final AppLocalizations i18n = AppLocalizations.of(context)!;
     if (controller.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
 
-    final schedule = controller.schedule;
-    final textTheme = Theme.of(context).textTheme;
-    final colorScheme = Theme.of(context).colorScheme;
+    final ScheduleWeek? schedule = controller.schedule;
+    final TextTheme textTheme = Theme.of(context).textTheme;
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
 
     if (schedule == null) {
-      if (controller.errorMessage == null) return const SizedBox.shrink();
+      if (controller.errorMessage == null) {
+        return const SizedBox.shrink();
+      }
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             spacing: 16,
-            children: [
+            children: <Widget>[
               Icon(
                 Icons.cloud_off_outlined,
                 size: 48,
@@ -223,29 +245,34 @@ class ScheduleScreen extends StatelessWidget {
       );
     }
 
-    final start = DateTime.parse("${schedule.weekStart}T00:00:00Z");
-    final cards = <Widget>[];
+    final DateTime start = DateTime.parse("${schedule.weekStart}T00:00:00Z");
+    final List<Widget> cards = <Widget>[];
 
-    final lessonsByDate = <String, List<ScheduleLesson>>{};
-    for (final lesson in schedule.lessons) {
-      (lessonsByDate[lesson.date] ??= []).add(lesson);
+    final Map<String, List<ScheduleLesson>> lessonsByDate =
+        <String, List<ScheduleLesson>>{};
+    for (final ScheduleLesson lesson in schedule.lessons) {
+      (lessonsByDate[lesson.date] ??= <ScheduleLesson>[]).add(lesson);
     }
 
-    for (var i = 0; i < 7; i++) {
-      final dateStr = _isoDate(
+    for (int i = 0; i < 7; i++) {
+      final String dateStr = _isoDate(
         DateTime.utc(start.year, start.month, start.day + i),
       );
 
-      final dayLessons =
-          List<ScheduleLesson>.from(lessonsByDate[dateStr] ?? const [])
-            ..sort((a, b) => a.pair.compareTo(b.pair));
+      final List<ScheduleLesson> dayLessons = List<ScheduleLesson>.from(
+        lessonsByDate[dateStr] ?? const <Object?>[],
+      )..sort((ScheduleLesson a, ScheduleLesson b) => a.pair.compareTo(b.pair));
 
-      final dayCancellations = schedule.cancellations.where((c) {
-        return dateStr.compareTo(c.startDate) >= 0 &&
-            dateStr.compareTo(c.endDate) <= 0;
-      }).toList();
+      final List<ScheduleCancellation> dayCancellations = schedule.cancellations
+          .where((ScheduleCancellation c) {
+            return dateStr.compareTo(c.startDate) >= 0 &&
+                dateStr.compareTo(c.endDate) <= 0;
+          })
+          .toList();
 
-      if (dayLessons.isEmpty && dayCancellations.isEmpty) continue;
+      if (dayLessons.isEmpty && dayCancellations.isEmpty) {
+        continue;
+      }
 
       cards.add(
         DayScheduleCard(
@@ -258,70 +285,77 @@ class ScheduleScreen extends StatelessWidget {
       );
     }
 
-    final nextDate = schedule.nextLessonDate;
+    final String? nextDate = schedule.nextLessonDate;
 
     return RefreshIndicator(
       onRefresh: () => controller.loadSchedule(showLoading: false),
-      child: ListView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(16),
-        children: [
-          if (controller.errorMessage != null)
-            Container(
-              margin: const EdgeInsets.only(bottom: 12),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: colorScheme.errorContainer,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                spacing: 12,
-                children: [
-                  Icon(
-                    Icons.error_outline,
-                    color: colorScheme.onErrorContainer,
+
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 840),
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(16),
+            children: <Widget>[
+              if (controller.errorMessage != null)
+                Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: colorScheme.errorContainer,
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  Expanded(
-                    child: Text(
-                      _formatErrorMessage(i18n, controller.errorMessage!),
-                      style: textTheme.bodyMedium?.copyWith(
+                  child: Row(
+                    spacing: 12,
+                    children: <Widget>[
+                      Icon(
+                        Icons.error_outline,
                         color: colorScheme.onErrorContainer,
                       ),
-                    ),
+                      Expanded(
+                        child: Text(
+                          _formatErrorMessage(i18n, controller.errorMessage!),
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onErrorContainer,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ),
-          if (cards.isEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: 64),
-              child: Column(
-                spacing: 8,
-                children: [
-                  Icon(
-                    Icons.event_available_outlined,
-                    size: 48,
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                  Text(
-                    i18n.noLessonsThisWeek,
-                    textAlign: TextAlign.center,
-                    style: textTheme.titleMedium,
-                  ),
-                  if (nextDate != null)
-                    Text(
-                      i18n.nextLessonDate(formatIsoDate(nextDate)),
-                      textAlign: TextAlign.center,
-                      style: textTheme.bodyMedium?.copyWith(
+                ),
+              if (cards.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 64),
+                  child: Column(
+                    spacing: 8,
+                    children: <Widget>[
+                      Icon(
+                        Icons.event_available_outlined,
+                        size: 48,
                         color: colorScheme.onSurfaceVariant,
                       ),
-                    ),
-                ],
-              ),
-            )
-          else
-            ...cards,
-        ],
+                      Text(
+                        i18n.noLessonsThisWeek,
+                        textAlign: TextAlign.center,
+                        style: textTheme.titleMedium,
+                      ),
+                      if (nextDate != null)
+                        Text(
+                          i18n.nextLessonDate(formatIsoDate(nextDate)),
+                          textAlign: TextAlign.center,
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                    ],
+                  ),
+                )
+              else
+                ...cards,
+            ],
+          ),
+        ),
       ),
     );
   }

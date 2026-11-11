@@ -1,10 +1,9 @@
 import "dart:async";
 
+import "package:asu_schedule/i18n/app_localizations.dart";
+import "package:asu_schedule/models/enums.dart";
+import "package:asu_schedule/models/reference_models.dart";
 import "package:material_ui/material_ui.dart";
-
-import "../../i18n/app_localizations.dart";
-import "../../models/enums.dart";
-import "../../models/reference_models.dart";
 
 class WeekSelectorBar extends StatefulWidget {
   final List<WeekItem> weeks;
@@ -12,10 +11,7 @@ class WeekSelectorBar extends StatefulWidget {
   final ValueChanged<String> onWeekSelected;
 
   const WeekSelectorBar({
-    super.key,
-    required this.weeks,
-    required this.selectedWeekStart,
-    required this.onWeekSelected,
+    required this.weeks, required this.selectedWeekStart, required this.onWeekSelected, super.key,
   });
 
   @override
@@ -23,7 +19,7 @@ class WeekSelectorBar extends StatefulWidget {
 }
 
 class _WeekSelectorBarState extends State<WeekSelectorBar> {
-  final _selectedKey = GlobalKey();
+  final GlobalKey<State<StatefulWidget>> _selectedKey = GlobalKey();
 
   @override
   void initState() {
@@ -42,8 +38,10 @@ class _WeekSelectorBarState extends State<WeekSelectorBar> {
 
   void _scrollToSelected({bool animate = true}) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final targetContext = _selectedKey.currentContext;
-      if (!mounted || targetContext == null) return;
+      final BuildContext? targetContext = _selectedKey.currentContext;
+      if (!mounted || targetContext == null) {
+        return;
+      }
       unawaited(
         Scrollable.ensureVisible(
           targetContext,
@@ -57,16 +55,17 @@ class _WeekSelectorBarState extends State<WeekSelectorBar> {
 
   @override
   Widget build(BuildContext context) {
-    final i18n = AppLocalizations.of(context)!;
-    final colorScheme = Theme.of(context).colorScheme;
+    final AppLocalizations i18n = AppLocalizations.of(context)!;
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final double scaledHeight = MediaQuery.textScalerOf(context).scale(54);
     return SizedBox(
-      height: 54,
+      height: scaledHeight,
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: Row(
-          children: [
-            for (final (index, week) in widget.weeks.indexed)
+          children: <Widget>[
+            for (final (int index, WeekItem week) in widget.weeks.indexed)
               Padding(
                 padding: EdgeInsets.only(
                   right: index < widget.weeks.length - 1 ? 8 : 0,

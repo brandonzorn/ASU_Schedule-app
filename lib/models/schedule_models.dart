@@ -1,4 +1,4 @@
-import "enums.dart";
+import "package:asu_schedule/models/enums.dart";
 
 class ScheduleTeacher {
   final int id;
@@ -37,14 +37,12 @@ class ScheduleLesson {
     required this.kind,
     required this.disciplineId,
     required this.discipline,
-    this.room,
+    required this.associationGroupIds, required this.teachers, this.room,
     this.subgroup,
     this.groupId,
     this.groupName,
     this.course,
     this.associationName,
-    required this.associationGroupIds,
-    required this.teachers,
     this.cancellationReason,
   });
 
@@ -67,12 +65,12 @@ class ScheduleLesson {
         (json["associationGroupIds"] as List<dynamic>?)
             ?.map((e) => e as int)
             .toList() ??
-        [],
+        <int>[],
     teachers:
         (json["teachers"] as List<dynamic>?)
             ?.map((e) => ScheduleTeacher.fromJson(e as Map<String, dynamic>))
             .toList() ??
-        [],
+        <ScheduleTeacher>[],
     cancellationReason: json["cancellationReason"] as String?,
   );
 }
@@ -117,8 +115,7 @@ class GroupItem {
   const GroupItem({
     required this.id,
     required this.name,
-    this.description,
-    required this.course,
+    required this.course, this.description,
   });
 
   factory GroupItem.fromJson(Map<String, dynamic> json) => GroupItem(

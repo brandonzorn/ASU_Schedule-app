@@ -1,23 +1,22 @@
+import "package:asu_schedule/i18n/app_localizations.dart";
+import "package:asu_schedule/models/schedule_models.dart";
 import "package:material_ui/material_ui.dart";
-
-import "../../i18n/app_localizations.dart";
-import "../../models/schedule_models.dart";
 
 class CancellationBanner extends StatelessWidget {
   final ScheduleCancellation cancellation;
 
-  const CancellationBanner({super.key, required this.cancellation});
+  const CancellationBanner({required this.cancellation, super.key});
 
   @override
   Widget build(BuildContext context) {
-    final i18n = AppLocalizations.of(context)!;
-    final colorScheme = Theme.of(context).colorScheme;
-    final textTheme = Theme.of(context).textTheme;
+    final AppLocalizations i18n = AppLocalizations.of(context)!;
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final TextTheme textTheme = Theme.of(context).textTheme;
 
-    final background = colorScheme.tertiaryContainer;
-    final foreground = colorScheme.onTertiaryContainer;
+    final Color background = colorScheme.tertiaryContainer;
+    final Color foreground = colorScheme.onTertiaryContainer;
 
-    final text = cancellation.pairs.isEmpty
+    final String text = cancellation.pairs.isEmpty
         ? "${i18n.lessonsCanceled} (${cancellation.scope}): ${cancellation.reason}"
         : "${i18n.canceledPairs} ${cancellation.pairs.join(", ")} "
               "(${cancellation.scope}): ${cancellation.reason}";
@@ -32,15 +31,12 @@ class CancellationBanner extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         spacing: 10,
-        children: [
-          Icon(Icons.warning_amber_rounded, size: 18, color: foreground),
+        children: <Widget>[
+          Icon(Icons.warning_amber_rounded, color: foreground),
           Expanded(
             child: Text(
               text,
-              style: textTheme.bodySmall?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: foreground,
-              ),
+              style: textTheme.bodySmall?.copyWith(color: foreground),
             ),
           ),
         ],

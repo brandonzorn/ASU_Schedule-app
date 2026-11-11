@@ -1,11 +1,10 @@
 import "dart:async";
 
+import "package:asu_schedule/models/reference_models.dart";
+import "package:asu_schedule/models/schedule_models.dart";
+import "package:asu_schedule/services/schedion_api_service.dart";
+import "package:asu_schedule/services/storage_service.dart";
 import "package:flutter/foundation.dart";
-
-import "../models/reference_models.dart";
-import "../models/schedule_models.dart";
-import "../services/schedion_api_service.dart";
-import "../services/storage_service.dart";
 
 class ScheduleController extends ChangeNotifier {
   final SchedionApiService _api;
@@ -13,7 +12,7 @@ class ScheduleController extends ChangeNotifier {
 
   ScheduleController({required this._api, required this._storage});
 
-  Map<int, PairItem> pairs = {};
+  Map<int, PairItem> pairs = <int, PairItem>{};
   WeekList? weekList;
   ScheduleWeek? schedule;
 
@@ -29,13 +28,15 @@ class ScheduleController extends ChangeNotifier {
   bool _disposed = false;
 
   WeekItem? get currentWeekItem =>
-      weekList?.items.where((w) => w.start == selectedWeek).firstOrNull;
+      weekList?.items.where((WeekItem w) => w.start == selectedWeek).firstOrNull;
 
   String _messageOf(Object e) => e.toString().replaceFirst("Exception: ", "");
 
   @override
   void notifyListeners() {
-    if (!_disposed) super.notifyListeners();
+    if (!_disposed) {
+      super.notifyListeners();
+    }
   }
 
   @override
@@ -50,12 +51,12 @@ class ScheduleController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final saved = await _storage.loadSavedFilters();
+      final ({int? course, int? groupId, int? teacherId}) saved = await _storage.loadSavedFilters();
       selectedCourse = saved.course;
       selectedGroupId = saved.groupId;
       selectedTeacherId = saved.teacherId;
 
-      final (pairsData, weekListData) = await (
+      final (Map<int, PairItem> pairsData, WeekList weekListData) = await (
         _api.getPairs(),
         _api.getWeeks(),
       ).wait;
@@ -73,28 +74,36 @@ class ScheduleController extends ChangeNotifier {
   }
 
   Future<void> loadSchedule({bool showLoading = true}) async {
-    final requestId = ++_requestId;
+    final int requestId = ++_requestId;
 
-    if (showLoading) isLoading = true;
+    if (showLoading) {
+      isLoading = true;
+    }
     errorMessage = null;
     notifyListeners();
 
     try {
-      final result = await _api.getSchedule(
+      final ScheduleWeek result = await _api.getSchedule(
         week: selectedWeek,
         course: selectedCourse,
         groupId: selectedGroupId,
         teacherId: selectedTeacherId,
       );
-      if (requestId != _requestId) return;
+      if (requestId != _requestId) {
+        return;
+      }
 
       schedule = result;
       selectedWeek = result.weekStart;
     } catch (e) {
-      if (requestId != _requestId) return;
+      if (requestId != _requestId) {
+        return;
+      }
 
       errorMessage = _messageOf(e);
-      if (showLoading) schedule = null;
+      if (showLoading) {
+        schedule = null;
+      }
     } finally {
       if (requestId == _requestId) {
         isLoading = false;
@@ -104,7 +113,9 @@ class ScheduleController extends ChangeNotifier {
   }
 
   void selectWeek(String weekStart) {
-    if (selectedWeek == weekStart) return;
+    if (selectedWeek == weekStart) {
+      return;
+    }
     selectedWeek = weekStart;
     unawaited(loadSchedule());
   }
