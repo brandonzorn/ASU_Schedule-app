@@ -1,0 +1,116 @@
+{
+  "@@locale": "ru",
+  "appTitle": "Расписание АГУ",
+  "scheduleTitle": "Расписание",
+  "today": "Сегодня",
+
+  "themeTooltip": "Тема оформления",
+  "themeSystem": "Как в системе",
+  "themeLight": "Светлая",
+  "themeDark": "Тёмная",
+
+  "lessonCanceled": "Занятие отменено",
+  "lessonsCanceled": "Занятия отменены",
+  "canceledPairs": "Отменены пары",
+  "canceledReason": "Отменено: {reason}",
+  "@canceledReason": {
+    "description": "Причина отмены занятия",
+    "placeholders": {
+      "reason": { "type": "String?" }
+    }
+  },
+  "noLessonsThisWeek": "На этой неделе занятий нет",
+  "nextLessonDate": "Ближайшее занятие: {date}",
+  "@nextLessonDate": {
+    "placeholders": {
+      "date": { "type": "String" }
+    }
+  },
+  "retry": "Повторить",
+  "apply": "Применить",
+  "reset": "Сбросить",
+  "filtersTitle": "Фильтры расписания",
+
+  "courseLabel": "Курс",
+  "allCourses": "Все курсы",
+  "courseNumber": "{course} курс",
+  "@courseNumber": {
+    "placeholders": {
+      "course": { "type": "int" }
+    }
+  },
+
+  "groupLabel": "Группа",
+  "allGroups": "Все группы",
+
+  "teacherLabel": "Преподаватель",
+  "allTeachers": "Все преподаватели",
+
+  "pairNumber": "{number} пара",
+  "@pairNumber": {
+    "placeholders": {
+      "number": { "type": "int" }
+    }
+  },
+
+  "weekShort": "{number} нед. ({range})",
+  "@weekShort": {
+    "placeholders": {
+      "number": { "type": "int" },
+      "range": { "type": "String" }
+    }
+  },
+  "weekHeader": "{number} неделя • {color}",
+  "@weekHeader": {
+    "description": "Заголовок текущей недели и её типа/цвета",
+    "placeholders": {
+      "number": { "type": "int" },
+      "color": { "type": "String" }
+    }
+  },
+
+  "roomNumber": "Ауд. {room}",
+  "@roomNumber": {
+    "description": "Номер аудитории",
+    "placeholders": {
+      "room": { "type": "String?" }
+    }
+  },
+
+  "subgroupNumber": "Подгр. {subgroup}",
+  "@subgroupNumber": {
+    "description": "Номер подгруппы",
+    "placeholders": {
+      "subgroup": { "type": "int?" }
+    }
+  },
+
+  "monday": "Понедельник",
+  "tuesday": "Вторник",
+  "wednesday": "Среда",
+  "thursday": "Четверг",
+  "friday": "Пятница",
+  "saturday": "Суббота",
+  "sunday": "Воскресенье",
+
+  "kindNone": "Не указан",
+  "kindLecture": "Лекция",
+  "kindSeminar": "Семинар",
+  "kindLaboratory": "Лабораторная",
+  "kindPractical": "Практика",
+  "kindSelfStudy": "Сам. работа",
+
+  "colorBlack": "Чёрная неделя",
+  "colorRed": "Красная неделя",
+
+  "errorRequest": "Ошибка запроса",
+  "errorServer": "Ошибка сервера ({status})",
+  "@errorServer": {
+    "description": "Сообщение об ошибке сервера",
+    "placeholders": {
+      "status": { "type": "Object" }
+    }
+  },
+  "errorConnection": "Ошибка соединения с сервером",
+  "errorInvalidData": "Сервер вернул некорректные данные"
+}

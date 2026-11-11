@@ -1,0 +1,63 @@
+{
+  "@@locale": "en",
+  "appTitle": "ASU Schedule",
+  "scheduleTitle": "Schedule",
+  "today": "Today",
+
+  "themeTooltip": "Theme mode",
+  "themeSystem": "System default",
+  "themeLight": "Light",
+  "themeDark": "Dark",
+
+  "lessonCanceled": "Class canceled",
+  "lessonsCanceled": "Classes canceled",
+  "canceledPairs": "Canceled classes",
+  "canceledReason": "Canceled: {reason}",
+  "noLessonsThisWeek": "No classes this week",
+  "nextLessonDate": "Next class: {date}",
+  "retry": "Retry",
+  "apply": "Apply",
+  "reset": "Reset",
+  "filtersTitle": "Schedule Filters",
+
+  "courseLabel": "Year",
+  "allCourses": "All years",
+  "courseNumber": "Year {course}",
+
+  "groupLabel": "Group",
+  "allGroups": "All groups",
+
+  "teacherLabel": "Teacher",
+  "allTeachers": "All teachers",
+
+  "pairNumber": "Class #{number}",
+
+  "weekShort": "Wk {number} ({range})",
+  "weekHeader": "Week {number} • {color}",
+
+  "roomNumber": "Rm. {room}",
+  "subgroupNumber": "Subgrp. {subgroup}",
+
+  "monday": "Monday",
+  "tuesday": "Tuesday",
+  "wednesday": "Wednesday",
+  "thursday": "Thursday",
+  "friday": "Friday",
+  "saturday": "Saturday",
+  "sunday": "Sunday",
+
+  "kindNone": "Not specified",
+  "kindLecture": "Lecture",
+  "kindSeminar": "Seminar",
+  "kindLaboratory": "Lab work",
+  "kindPractical": "Practice",
+  "kindSelfStudy": "Self-study",
+
+  "colorBlack": "Black week",
+  "colorRed": "Red week",
+
+  "errorRequest": "Request error",
+  "errorServer": "Server error ({status})",
+  "errorConnection": "Connection error",
+  "errorInvalidData": "Server returned invalid data"
+}
