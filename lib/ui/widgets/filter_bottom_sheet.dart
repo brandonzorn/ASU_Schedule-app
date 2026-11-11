@@ -1,5 +1,6 @@
-import "package:flutter/material.dart";
+import "package:material_ui/material_ui.dart";
 
+import "../../i18n/app_localizations.dart";
 import "../../models/schedule_models.dart";
 
 class FilterBottomSheet extends StatefulWidget {
@@ -27,102 +28,120 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
   late int? _groupId = widget.initialGroupId;
   late int? _teacherId = widget.initialTeacherId;
 
+  bool get _hasActiveFilters =>
+      _course != null || _groupId != null || _teacherId != null;
+
+  void _resetFilters() {
+    setState(() {
+      _course = null;
+      _groupId = null;
+      _teacherId = null;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    final i18n = AppLocalizations.of(context)!;
+    final textTheme = Theme.of(context).textTheme;
+    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
+
     final availableGroups = widget.filters.groups
         .where((g) => _course == null || g.course == _course)
         .toList();
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            "Фильтры расписания",
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          const SizedBox(height: 16),
-          DropdownButtonFormField<int?>(
-            isExpanded: true,
-            initialValue: widget.filters.courses.contains(_course)
-                ? _course
-                : null,
-            decoration: const InputDecoration(
-              labelText: "Курс",
-              border: OutlineInputBorder(),
+    final validCourse = widget.filters.courses.contains(_course)
+        ? _course
+        : null;
+    final validGroupId = availableGroups.any((g) => g.id == _groupId)
+        ? _groupId
+        : null;
+    final validTeacherId =
+        widget.filters.teachers.any((t) => t.id == _teacherId)
+        ? _teacherId
+        : null;
+
+    return SafeArea(
+      child: SingleChildScrollView(
+        padding: EdgeInsets.fromLTRB(20, 8, 20, 20 + bottomInset),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: 16,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(i18n.filtersTitle, style: textTheme.titleLarge),
+                if (_hasActiveFilters)
+                  TextButton(onPressed: _resetFilters, child: Text(i18n.reset)),
+              ],
             ),
-            items: [
-              const DropdownMenuItem(value: null, child: Text("Все курсы")),
-              ...widget.filters.courses.map(
-                (c) => DropdownMenuItem(value: c, child: Text("$c курс")),
-              ),
-            ],
-            onChanged: (val) => setState(() {
-              _course = val;
-              _groupId = null;
-            }),
-          ),
-          const SizedBox(height: 12),
-          DropdownButtonFormField<int?>(
-            key: ValueKey("group_$_course"),
-            isExpanded: true,
-            initialValue: availableGroups.any((g) => g.id == _groupId)
-                ? _groupId
-                : null,
-            decoration: const InputDecoration(
-              labelText: "Группа",
-              border: OutlineInputBorder(),
+
+            DropdownMenu<int?>(
+              key: ValueKey("course_$validCourse"),
+              expandedInsets: EdgeInsets.zero,
+              initialSelection: validCourse,
+              label: Text(i18n.courseLabel),
+              dropdownMenuEntries: [
+                DropdownMenuEntry(value: null, label: i18n.allCourses),
+                for (final c in widget.filters.courses)
+                  DropdownMenuEntry(value: c, label: i18n.courseNumber(c)),
+              ],
+              onSelected: (val) => setState(() {
+                _course = val;
+                _groupId = null;
+              }),
             ),
-            items: [
-              const DropdownMenuItem(value: null, child: Text("Все группы")),
-              ...availableGroups.map(
-                (g) => DropdownMenuItem(value: g.id, child: Text(g.name)),
-              ),
-            ],
-            onChanged: (val) => setState(() => _groupId = val),
-          ),
-          const SizedBox(height: 12),
-          DropdownButtonFormField<int?>(
-            isExpanded: true,
-            initialValue: widget.filters.teachers.any((t) => t.id == _teacherId)
-                ? _teacherId
-                : null,
-            decoration: const InputDecoration(
-              labelText: "Преподаватель",
-              border: OutlineInputBorder(),
+
+            DropdownMenu<int?>(
+              key: ValueKey("group_${validCourse}_$validGroupId"),
+              expandedInsets: EdgeInsets.zero,
+              menuHeight: 300,
+              enableFilter: true,
+              requestFocusOnTap: true,
+              initialSelection: validGroupId,
+              label: Text(i18n.groupLabel),
+              dropdownMenuEntries: [
+                DropdownMenuEntry(value: null, label: i18n.allGroups),
+                for (final g in availableGroups)
+                  DropdownMenuEntry(value: g.id, label: g.name),
+              ],
+              onSelected: (val) => setState(() => _groupId = val),
             ),
-            items: [
-              const DropdownMenuItem(
-                value: null,
-                child: Text("Все преподаватели"),
-              ),
-              ...widget.filters.teachers.map(
-                (t) => DropdownMenuItem(
-                  value: t.id,
-                  child: Text(
-                    t.shortName ?? t.fullName,
-                    overflow: TextOverflow.ellipsis,
+
+            DropdownMenu<int?>(
+              key: ValueKey("teacher_$validTeacherId"),
+              expandedInsets: EdgeInsets.zero,
+              menuHeight: 300,
+              enableFilter: true,
+              requestFocusOnTap: true,
+              initialSelection: validTeacherId,
+              label: Text(i18n.teacherLabel),
+              dropdownMenuEntries: [
+                DropdownMenuEntry(value: null, label: i18n.allTeachers),
+                for (final t in widget.filters.teachers)
+                  DropdownMenuEntry(
+                    value: t.id,
+                    label: t.shortName ?? t.fullName,
                   ),
-                ),
-              ),
-            ],
-            onChanged: (val) => setState(() => _teacherId = val),
-          ),
-          const SizedBox(height: 20),
-          FilledButton(
-            onPressed: () {
-              Navigator.pop(context);
-              widget.onApply(
-                course: _course,
-                groupId: _groupId,
-                teacherId: _teacherId,
-              );
-            },
-            child: const Text("Применить"),
-          ),
-        ],
+              ],
+              onSelected: (val) => setState(() => _teacherId = val),
+            ),
+
+            const SizedBox(height: 4),
+            FilledButton(
+              onPressed: () {
+                Navigator.pop(context);
+                widget.onApply(
+                  course: validCourse,
+                  groupId: validGroupId,
+                  teacherId: validTeacherId,
+                );
+              },
+              child: Text(i18n.apply),
+            ),
+          ],
+        ),
       ),
     );
   }

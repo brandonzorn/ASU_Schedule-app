@@ -19,3 +19,4 @@ linter:
     - cancel_subscriptions
     - unawaited_futures
     - always_declare_return_types
+    - migrate_design_widgets

@@ -16,6 +16,10 @@ dependencies:
   cupertino_icons: ^1.0.8
   dio: ^5.11.1
   shared_preferences: ^2.5.6
+  material_ui: ^1.11.0
+  flutter_localizations:
+    sdk: flutter
+  intl: any
 
 dev_dependencies:
   flutter_test:
@@ -30,10 +34,12 @@ flutter_launcher_icons:
 
   image_path: "assets/icon/icon.png"
   adaptive_icon_foreground: "assets/icon/icon_foreground.png"
+  adaptive_icon_background: "#2563EB"
 
   windows:
     generate: true
     icon_size: 48
 
 flutter:
+  generate: true
   uses-material-design: true

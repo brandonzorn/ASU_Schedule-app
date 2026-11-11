@@ -1,4 +1,4 @@
-import "package:flutter/material.dart";
+import "package:material_ui/material_ui.dart";
 
 import "../../models/reference_models.dart";
 import "../../models/schedule_models.dart";
@@ -24,9 +24,14 @@ class DayScheduleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      elevation: 1,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: colorScheme.outlineVariant),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -37,21 +42,30 @@ class DayScheduleCard extends StatelessWidget {
               children: [
                 Text(
                   weekdayName,
-                  style: Theme.of(context).textTheme.titleMedium
-                      ?.copyWith(fontWeight: FontWeight.bold),
+                  style: textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
                 Text(
                   formatIsoDate(dateStr),
-                  style: Theme.of(context).textTheme.bodySmall,
+                  style: textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ],
             ),
-            const Divider(height: 20),
-            ...cancellations.map((c) => CancellationBanner(cancellation: c)),
-            ...lessons.map(
-              (lesson) =>
-                  LessonTile(lesson: lesson, pairInfo: pairs[lesson.pair]),
-            ),
+            const Divider(height: 8),
+
+            for (final c in cancellations) CancellationBanner(cancellation: c),
+            for (final (index, lesson) in lessons.indexed) ...[
+              LessonTile(lesson: lesson, pairInfo: pairs[lesson.pair]),
+              if (index != lessons.length - 1)
+                Divider(
+                  height: 8,
+                  color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+                ),
+            ],
           ],
         ),
       ),

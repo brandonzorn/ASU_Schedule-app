@@ -1,7 +1,8 @@
 import "dart:async";
 
-import "package:flutter/material.dart";
+import "package:material_ui/material_ui.dart";
 
+import "i18n/app_localizations.dart";
 import "controllers/schedule_controller.dart";
 import "controllers/theme_controller.dart";
 import "services/schedion_api_service.dart";
@@ -58,11 +59,15 @@ class SchedionApp extends StatelessWidget {
     return ListenableBuilder(
       listenable: themeController,
       builder: (context, _) => MaterialApp(
-        title: "Расписание АГУ",
-        debugShowCheckedModeBanner: false,
+        onGenerateTitle: (context) => AppLocalizations.of(context)!.appTitle,
         theme: _buildTheme(Brightness.light),
         darkTheme: _buildTheme(Brightness.dark),
         themeMode: themeController.themeMode,
+        localizationsDelegates: [
+          AppLocalizations.delegate,
+          ...GlobalMaterialLocalizations.delegates,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
         home: ScheduleScreen(
           controller: controller,
           themeController: themeController,

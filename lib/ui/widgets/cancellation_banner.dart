@@ -1,5 +1,6 @@
-import "package:flutter/material.dart";
+import "package:material_ui/material_ui.dart";
 
+import "../../i18n/app_localizations.dart";
 import "../../models/schedule_models.dart";
 
 class CancellationBanner extends StatelessWidget {
@@ -9,33 +10,37 @@ class CancellationBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final background = isDark
-        ? Colors.amber.shade900.withValues(alpha: 0.35)
-        : Colors.amber.shade100;
-    final foreground = isDark ? Colors.amber.shade100 : Colors.black;
+    final i18n = AppLocalizations.of(context)!;
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    final background = colorScheme.tertiaryContainer;
+    final foreground = colorScheme.onTertiaryContainer;
 
     final text = cancellation.pairs.isEmpty
-        ? "Занятия отменены (${cancellation.scope}): ${cancellation.reason}"
-        : "Отменены пары ${cancellation.pairs.join(", ")} "
+        ? "${i18n.lessonsCanceled} (${cancellation.scope}): ${cancellation.reason}"
+        : "${i18n.canceledPairs} ${cancellation.pairs.join(", ")} "
               "(${cancellation.scope}): ${cancellation.reason}";
 
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: background,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        spacing: 10,
         children: [
-          Icon(Icons.info_outline, size: 18, color: foreground),
-          const SizedBox(width: 8),
+          Icon(Icons.warning_amber_rounded, size: 18, color: foreground),
           Expanded(
             child: Text(
               text,
-              style: TextStyle(fontWeight: FontWeight.w500, color: foreground),
+              style: textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: foreground,
+              ),
             ),
           ),
         ],

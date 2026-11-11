@@ -55,10 +55,13 @@ class ScheduleController extends ChangeNotifier {
       selectedGroupId = saved.groupId;
       selectedTeacherId = saved.teacherId;
 
-      final results = await Future.wait([_api.getPairs(), _api.getWeeks()]);
+      final (pairsData, weekListData) = await (
+        _api.getPairs(),
+        _api.getWeeks(),
+      ).wait;
+      pairs = pairsData;
+      weekList = weekListData;
 
-      pairs = results[0] as Map<int, PairItem>;
-      weekList = results[1] as WeekList;
       selectedWeek ??= weekList!.defaultWeekStart;
 
       await loadSchedule();
@@ -107,11 +110,20 @@ class ScheduleController extends ChangeNotifier {
   }
 
   Future<void> applyFilters({int? course, int? groupId, int? teacherId}) async {
+    if (selectedCourse == course &&
+        selectedGroupId == groupId &&
+        selectedTeacherId == teacherId) {
+      return;
+    }
     selectedCourse = course;
     selectedGroupId = groupId;
     selectedTeacherId = teacherId;
     try {
-      await _storage.saveFilters(course: course, groupId: groupId, teacherId: teacherId);
+      await _storage.saveFilters(
+        course: course,
+        groupId: groupId,
+        teacherId: teacherId,
+      );
     } catch (_) {
       // Не удалось сохранить фильтры - расписание всё равно загружаем.
     }

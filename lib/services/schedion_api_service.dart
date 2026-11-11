@@ -50,13 +50,13 @@ class SchedionApiService {
   String _errorMessage(DioException e) {
     final data = e.response?.data;
     if (data is Map<String, dynamic>) {
-      final title = data["title"]?.toString() ?? "Ошибка запроса";
+      final title = data["title"]?.toString() ?? "errorRequest";
       final detail = data["detail"]?.toString() ?? "";
       return detail.isEmpty ? title : "$title. $detail";
     }
     final status = e.response?.statusCode;
-    if (status != null) return "Ошибка сервера ($status)";
-    return "Ошибка соединения с сервером";
+    if (status != null) return "errorServer:$status";
+    return "errorConnection";
   }
 
   Future<T?> _readCache<T>(
@@ -95,7 +95,7 @@ class SchedionApiService {
       }
       throw Exception(_errorMessage(e));
     } catch (_) {
-      throw Exception("Сервер вернул некорректные данные");
+      throw Exception("errorInvalidData");
     }
   }
 
