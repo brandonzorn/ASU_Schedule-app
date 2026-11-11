@@ -10,6 +10,8 @@ class LessonTile extends StatelessWidget {
 
   const LessonTile({super.key, required this.lesson, this.pairInfo});
 
+  static bool _has(String? value) => value != null && value.isNotEmpty;
+
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
@@ -18,10 +20,10 @@ class LessonTile extends StatelessWidget {
 
     final metaTags = <String>[
       if (lesson.kind != LessonKind.none) lesson.kind.label,
-      if (lesson.room != null) "Ауд. ${lesson.room}",
+      if (_has(lesson.room)) "Ауд. ${lesson.room}",
       if (lesson.subgroup != null) "Подгр. ${lesson.subgroup}",
-      if (lesson.groupName != null) lesson.groupName!,
-      if (lesson.associationName != null) lesson.associationName!,
+      if (_has(lesson.groupName)) lesson.groupName!,
+      if (_has(lesson.associationName)) lesson.associationName!,
       if (lesson.teachers.isNotEmpty)
         lesson.teachers.map((t) => t.shortName).join(", "),
     ];
@@ -46,7 +48,7 @@ class LessonTile extends StatelessWidget {
                   Text(
                     timeText,
                     style: textTheme.bodySmall?.copyWith(
-                      color: Colors.grey[600],
+                      color: colorScheme.onSurfaceVariant,
                     ),
                   ),
               ],
@@ -71,7 +73,7 @@ class LessonTile extends StatelessWidget {
                   Text(
                     metaTags.join(" • "),
                     style: textTheme.bodySmall?.copyWith(
-                      color: Colors.grey[700],
+                      color: colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ],

@@ -33,7 +33,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
         .where((g) => _course == null || g.course == _course)
         .toList();
 
-    return Padding(
+    return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -45,7 +45,10 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
           ),
           const SizedBox(height: 16),
           DropdownButtonFormField<int?>(
-            initialValue: widget.filters.courses.contains(_course) ? _course : null,
+            isExpanded: true,
+            initialValue: widget.filters.courses.contains(_course)
+                ? _course
+                : null,
             decoration: const InputDecoration(
               labelText: "Курс",
               border: OutlineInputBorder(),
@@ -63,6 +66,8 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
           ),
           const SizedBox(height: 12),
           DropdownButtonFormField<int?>(
+            key: ValueKey("group_$_course"),
+            isExpanded: true,
             initialValue: availableGroups.any((g) => g.id == _groupId)
                 ? _groupId
                 : null,
@@ -80,6 +85,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
           ),
           const SizedBox(height: 12),
           DropdownButtonFormField<int?>(
+            isExpanded: true,
             initialValue: widget.filters.teachers.any((t) => t.id == _teacherId)
                 ? _teacherId
                 : null,
@@ -95,7 +101,10 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
               ...widget.filters.teachers.map(
                 (t) => DropdownMenuItem(
                   value: t.id,
-                  child: Text(t.shortName ?? t.fullName),
+                  child: Text(
+                    t.shortName ?? t.fullName,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ),
             ],

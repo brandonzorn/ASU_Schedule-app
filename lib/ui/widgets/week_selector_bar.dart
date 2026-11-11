@@ -1,9 +1,11 @@
+import "dart:async";
+
 import "package:flutter/material.dart";
 
 import "../../models/enums.dart";
 import "../../models/reference_models.dart";
 
-class WeekSelectorBar extends StatelessWidget {
+class WeekSelectorBar extends StatefulWidget {
   final List<WeekItem> weeks;
   final String? selectedWeekStart;
   final ValueChanged<String> onWeekSelected;
@@ -16,29 +18,69 @@ class WeekSelectorBar extends StatelessWidget {
   });
 
   @override
+  State<WeekSelectorBar> createState() => _WeekSelectorBarState();
+}
+
+class _WeekSelectorBarState extends State<WeekSelectorBar> {
+  final _selectedKey = GlobalKey();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollToSelected(animate: false);
+  }
+
+  @override
+  void didUpdateWidget(WeekSelectorBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.selectedWeekStart != widget.selectedWeekStart) {
+      _scrollToSelected();
+    }
+  }
+
+  void _scrollToSelected({bool animate = true}) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final context = _selectedKey.currentContext;
+      if (!mounted || context == null) return;
+      unawaited(
+        Scrollable.ensureVisible(
+          context,
+          alignment: 0.5,
+          duration: animate ? const Duration(milliseconds: 250) : Duration.zero,
+        ),
+      );
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return SizedBox(
       height: 54,
-      child: ListView.separated(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
-        itemCount: weeks.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 8),
-        itemBuilder: (context, index) {
-          final week = weeks[index];
-          final isSelected = week.start == selectedWeekStart;
-          final isRed = week.color == WeekColor.red;
-
-          return ChoiceChip(
-            label: Text("${week.number} нед. (${week.shortRange})"),
-            selected: isSelected,
-            avatar: CircleAvatar(
-              backgroundColor: isRed ? Colors.red : Colors.black87,
-              radius: 5,
-            ),
-            onSelected: (_) => onWeekSelected(week.start),
-          );
-        },
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Row(
+          children: [
+            for (final week in widget.weeks)
+              Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: ChoiceChip(
+                  key: week.start == widget.selectedWeekStart
+                      ? _selectedKey
+                      : null,
+                  label: Text("${week.number} нед. (${week.shortRange})"),
+                  selected: week.start == widget.selectedWeekStart,
+                  avatar: CircleAvatar(
+                    backgroundColor: week.color == WeekColor.red
+                        ? Colors.red
+                        : Colors.black87,
+                    radius: 5,
+                  ),
+                  onSelected: (_) => widget.onWeekSelected(week.start),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

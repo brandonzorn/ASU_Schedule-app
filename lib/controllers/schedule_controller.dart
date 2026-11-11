@@ -1,3 +1,5 @@
+import "dart:async";
+
 import "package:flutter/foundation.dart";
 
 import "../models/reference_models.dart";
@@ -9,10 +11,7 @@ class ScheduleController extends ChangeNotifier {
   final SchedionApiService _api;
   final StorageService _storage;
 
-  ScheduleController({
-    required this._api,
-    required this._storage,
-  });
+  ScheduleController({required this._api, required this._storage});
 
   Map<int, PairItem> pairs = {};
   WeekList? weekList;
@@ -26,8 +25,24 @@ class ScheduleController extends ChangeNotifier {
   bool isLoading = true;
   String? errorMessage;
 
+  int _requestId = 0;
+  bool _disposed = false;
+
   WeekItem? get currentWeekItem =>
       weekList?.items.where((w) => w.start == selectedWeek).firstOrNull;
+
+  String _messageOf(Object e) => e.toString().replaceFirst("Exception: ", "");
+
+  @override
+  void notifyListeners() {
+    if (!_disposed) super.notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
+  }
 
   Future<void> initialize() async {
     isLoading = true;
@@ -48,37 +63,47 @@ class ScheduleController extends ChangeNotifier {
 
       await loadSchedule();
     } catch (e) {
-      errorMessage = e.toString().replaceFirst("Exception: ", "");
+      errorMessage = _messageOf(e);
       isLoading = false;
       notifyListeners();
     }
   }
 
-  Future<void> loadSchedule() async {
-    isLoading = true;
+  Future<void> loadSchedule({bool showLoading = true}) async {
+    final requestId = ++_requestId;
+
+    if (showLoading) isLoading = true;
     errorMessage = null;
     notifyListeners();
 
     try {
-      schedule = await _api.getSchedule(
+      final result = await _api.getSchedule(
         week: selectedWeek,
         course: selectedCourse,
         groupId: selectedGroupId,
         teacherId: selectedTeacherId,
       );
-      selectedWeek = schedule!.weekStart;
+      if (requestId != _requestId) return;
+
+      schedule = result;
+      selectedWeek = result.weekStart;
     } catch (e) {
-      errorMessage = e.toString().replaceFirst("Exception: ", "");
+      if (requestId != _requestId) return;
+
+      errorMessage = _messageOf(e);
+      if (showLoading) schedule = null;
     } finally {
-      isLoading = false;
-      notifyListeners();
+      if (requestId == _requestId) {
+        isLoading = false;
+        notifyListeners();
+      }
     }
   }
 
   void selectWeek(String weekStart) {
     if (selectedWeek == weekStart) return;
     selectedWeek = weekStart;
-    loadSchedule();
+    unawaited(loadSchedule());
   }
 
   Future<void> applyFilters({int? course, int? groupId, int? teacherId}) async {

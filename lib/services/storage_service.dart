@@ -1,4 +1,5 @@
 import "dart:convert";
+
 import "package:shared_preferences/shared_preferences.dart";
 
 class StorageService {
@@ -6,7 +7,8 @@ class StorageService {
   static const _groupKey = "saved_group";
   static const _teacherKey = "saved_teacher";
 
-  Future<({int? course, int? groupId, int? teacherId})> loadSavedFilters() async {
+  Future<({int? course, int? groupId, int? teacherId})>
+  loadSavedFilters() async {
     final prefs = await SharedPreferences.getInstance();
     return (
       course: prefs.getInt(_courseKey),
@@ -15,17 +17,23 @@ class StorageService {
     );
   }
 
+  Future<void> _setOrRemove(
+    SharedPreferences prefs,
+    String key,
+    int? value,
+  ) async {
+    if (value != null) {
+      await prefs.setInt(key, value);
+    } else {
+      await prefs.remove(key);
+    }
+  }
+
   Future<void> saveFilters({int? course, int? groupId, int? teacherId}) async {
     final prefs = await SharedPreferences.getInstance();
-    course != null
-        ? await prefs.setInt(_courseKey, course)
-        : await prefs.remove(_courseKey);
-    groupId != null
-        ? await prefs.setInt(_groupKey, groupId)
-        : await prefs.remove(_groupKey);
-    teacherId != null
-        ? await prefs.setInt(_teacherKey, teacherId)
-        : await prefs.remove(_teacherKey);
+    await _setOrRemove(prefs, _courseKey, course);
+    await _setOrRemove(prefs, _groupKey, groupId);
+    await _setOrRemove(prefs, _teacherKey, teacherId);
   }
 
   Future<void> saveJsonCache(String key, Map<String, dynamic> data) async {
@@ -33,10 +41,18 @@ class StorageService {
     await prefs.setString(key, jsonEncode(data));
   }
 
-  Future? getJsonCache(String key) async {
+  Future<Map<String, dynamic>?> getJsonCache(String key) async {
     final prefs = await SharedPreferences.getInstance();
     final raw = prefs.getString(key);
     if (raw == null) return null;
-    return jsonDecode(raw) as Map<String, dynamic>;
+
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is Map<String, dynamic>) return decoded;
+    } on FormatException {
+      // Выбрасываем поврежденный кэш
+    }
+    await prefs.remove(key);
+    return null;
   }
 }

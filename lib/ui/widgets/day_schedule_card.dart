@@ -2,6 +2,7 @@ import "package:flutter/material.dart";
 
 import "../../models/reference_models.dart";
 import "../../models/schedule_models.dart";
+import "../../utils/date_format.dart";
 import "cancellation_banner.dart";
 import "lesson_tile.dart";
 
@@ -39,7 +40,10 @@ class DayScheduleCard extends StatelessWidget {
                   style: Theme.of(context).textTheme.titleMedium
                       ?.copyWith(fontWeight: FontWeight.bold),
                 ),
-                Text(dateStr, style: Theme.of(context).textTheme.bodySmall),
+                Text(
+                  formatIsoDate(dateStr),
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
               ],
             ),
             const Divider(height: 20),

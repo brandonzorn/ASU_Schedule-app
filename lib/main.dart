@@ -1,3 +1,5 @@
+import "dart:async";
+
 import "package:flutter/material.dart";
 
 import "controllers/schedule_controller.dart";
@@ -13,7 +15,8 @@ void main() {
   final scheduleController = ScheduleController(
     api: apiService,
     storage: storageService,
-  )..initialize();
+  );
+  unawaited(scheduleController.initialize());
 
   runApp(SchedionApp(controller: scheduleController));
 }

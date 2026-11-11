@@ -11,7 +11,8 @@ class CancellationBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final text = cancellation.pairs.isEmpty
         ? "Занятия отменены (${cancellation.scope}): ${cancellation.reason}"
-        : 'Отменены пары ${cancellation.pairs.join(", ")} (${cancellation.scope}): ${cancellation.reason}';
+        : "Отменены пары ${cancellation.pairs.join(", ")} "
+              "(${cancellation.scope}): ${cancellation.reason}";
 
     return Container(
       width: double.infinity,

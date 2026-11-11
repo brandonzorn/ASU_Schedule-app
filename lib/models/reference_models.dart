@@ -1,5 +1,12 @@
 import "enums.dart";
 
+String _hoursMinutes(String time) =>
+    time.length >= 5 ? time.substring(0, 5) : time;
+
+String _dayMonth(String isoDate) => isoDate.length >= 10
+    ? "${isoDate.substring(8, 10)}.${isoDate.substring(5, 7)}"
+    : isoDate;
+
 class PairItem {
   final int number;
   final String start;
@@ -11,8 +18,7 @@ class PairItem {
     required this.end,
   });
 
-  String get formattedTime =>
-      "${start.substring(0, 5)} – ${end.substring(0, 5)}";
+  String get formattedTime => "${_hoursMinutes(start)} - ${_hoursMinutes(end)}";
 
   factory PairItem.fromJson(Map<String, dynamic> json) => PairItem(
     number: json["number"] as int,
@@ -34,7 +40,7 @@ class WeekItem {
     required this.color,
   });
 
-  String get shortRange => "${start.substring(8, 10)}.${start.substring(5, 7)}";
+  String get shortRange => "${_dayMonth(start)}.${_dayMonth(end)}";
 
   factory WeekItem.fromJson(Map<String, dynamic> json) => WeekItem(
     start: json["start"] as String,
