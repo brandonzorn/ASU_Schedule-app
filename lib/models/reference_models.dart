@@ -40,7 +40,7 @@ class WeekItem {
     required this.color,
   });
 
-  String get shortRange => "${_dayMonth(start)}.${_dayMonth(end)}";
+  String get shortRange => "${_dayMonth(start)}-${_dayMonth(end)}";
 
   factory WeekItem.fromJson(Map<String, dynamic> json) => WeekItem(
     start: json["start"] as String,
