@@ -1,18 +1,12 @@
 import "package:asu_schedule/models/reference_models.dart";
 import "package:asu_schedule/models/schedule_models.dart";
+import "package:asu_schedule/services/api/api_config.dart";
 import "package:asu_schedule/services/storage_service.dart";
 import "package:dio/dio.dart";
 
 class SchedionApiService {
+  final Dio _dio = SchedionApiConfig.createDio();
   final StorageService _storage;
-  final Dio _dio = Dio(
-    BaseOptions(
-      baseUrl: "https://schedion.ru/api/public/v1",
-      connectTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(seconds: 10),
-      headers: <String, dynamic>{"Accept": "application/json"},
-    ),
-  );
 
   SchedionApiService(this._storage);
 
@@ -67,7 +61,9 @@ class SchedionApiService {
     T Function(Map<String, dynamic> json) parser,
   ) async {
     try {
-      final Map<String, dynamic>? cached = await _storage.getJsonCache(cacheKey);
+      final Map<String, dynamic>? cached = await _storage.getJsonCache(
+        cacheKey,
+      );
       return cached == null ? null : parser(cached);
     } catch (_) {
       return null;
@@ -112,7 +108,9 @@ class SchedionApiService {
         final Iterable<PairItem> items = (json["items"] as List<dynamic>).map(
           (e) => PairItem.fromJson(e as Map<String, dynamic>),
         );
-        return <int, PairItem>{for (final PairItem item in items) item.number: item};
+        return <int, PairItem>{
+          for (final PairItem item in items) item.number: item,
+        };
       },
     );
   }
