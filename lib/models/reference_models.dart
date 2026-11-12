@@ -7,17 +7,11 @@ String _dayMonth(String isoDate) => isoDate.length >= 10
     ? "${isoDate.substring(8, 10)}.${isoDate.substring(5, 7)}"
     : isoDate;
 
-class PairItem {
-  final int number;
-  final String start;
-  final String end;
-
-  const PairItem({
-    required this.number,
-    required this.start,
-    required this.end,
-  });
-
+class const PairItem({
+  required final int number,
+  required final String start,
+  required final String end,
+}) {
   String get formattedTime => "${_hoursMinutes(start)} - ${_hoursMinutes(end)}";
 
   factory PairItem.fromJson(Map<String, dynamic> json) => PairItem(
@@ -27,20 +21,13 @@ class PairItem {
   );
 }
 
-class WeekItem {
-  final String start;
-  final String end;
-  final int number;
-  final WeekColor color;
-
-  const WeekItem({
-    required this.start,
-    required this.end,
-    required this.number,
-    required this.color,
-  });
-
-  String get shortRange => "${_dayMonth(start)}–${_dayMonth(end)}";
+class const WeekItem({
+  required final String start,
+  required final String end,
+  required final int number,
+  required final WeekColor color,
+}) {
+  String get shortRange => "${_dayMonth(start)}\u2013${_dayMonth(end)}";
 
   factory WeekItem.fromJson(Map<String, dynamic> json) => WeekItem(
     start: json["start"] as String,
@@ -50,25 +37,18 @@ class WeekItem {
   );
 }
 
-class WeekList {
-  final String semesterTitle;
-  final String currentWeekStart;
-  final String defaultWeekStart;
-  final List<WeekItem> items;
-
-  const WeekList({
-    required this.semesterTitle,
-    required this.currentWeekStart,
-    required this.defaultWeekStart,
-    required this.items,
-  });
-
+class const WeekList({
+  required final String semesterTitle,
+  required final String currentWeekStart,
+  required final String defaultWeekStart,
+  required final List<WeekItem> items,
+}) {
   factory WeekList.fromJson(Map<String, dynamic> json) => WeekList(
     semesterTitle: (json["semester"]?["title"] as String?) ?? "",
     currentWeekStart: json["currentWeekStart"] as String,
     defaultWeekStart: json["defaultWeekStart"] as String,
     items: (json["items"] as List<dynamic>)
         .map((e) => WeekItem.fromJson(e as Map<String, dynamic>))
-        .toList(),
+        .toList(growable: false),
   );
 }
