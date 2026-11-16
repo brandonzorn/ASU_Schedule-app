@@ -96,13 +96,11 @@ class const GroupItem({
 
 class const TeacherItem({
   required final int id,
-  required final String fullName,
-  final String? shortName,
+  required final String shortName,
 }) {
   factory TeacherItem.fromJson(Map<String, dynamic> json) => TeacherItem(
     id: json["id"] as int,
-    fullName: json["fullName"] as String,
-    shortName: json["shortName"] as String?,
+    shortName: json["shortName"] as String,
   );
 }
 
