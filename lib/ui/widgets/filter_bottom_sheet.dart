@@ -121,7 +121,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                 for (final TeacherItem t in widget.filters.teachers)
                   DropdownMenuEntry<int>(
                     value: t.id,
-                    label: t.shortName ?? t.fullName,
+                    label: t.shortName,
                   ),
               ],
               onSelected: (int? val) => setState(() => _teacherId = val),
