@@ -1,0 +1,47 @@
+name: Build Android
+
+on:
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build Flutter Android
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Setup Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - name: Setup Flutter
+        uses: flutter-actions/setup-flutter@v4
+        with:
+          channel: stable
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze
+        
+      - name: Build APK
+        run: flutter build apk --release
+
+      - name: Upload Android builds
+        uses: actions/upload-artifact@v7
+        with:
+          name: android-builds
+          path: |
+            build/app/outputs/flutter-apk/*.apk
+          if-no-files-found: error
+          retention-days: 14
