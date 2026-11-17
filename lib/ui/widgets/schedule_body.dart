@@ -32,7 +32,7 @@ class ScheduleBody extends StatelessWidget {
       }
       return ScheduleErrorView(
         message: i18n.errorText(error),
-        onRetry: controller.initialize,
+        onRetry: controller.retry,
       );
     }
 
