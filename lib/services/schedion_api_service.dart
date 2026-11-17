@@ -1,3 +1,4 @@
+import "dart:developer";
 import "package:asu_schedule/models/reference_models.dart";
 import "package:asu_schedule/models/schedule_models.dart";
 import "package:asu_schedule/services/api/api_config.dart";
@@ -5,6 +6,8 @@ import "package:asu_schedule/services/storage_service.dart";
 import "package:dio/dio.dart";
 
 class SchedionApiService {
+  static const String _logName = "SchedionApi";
+ 
   final Dio _dio = SchedionApiConfig.createDio();
   final StorageService _storage;
 
@@ -65,7 +68,13 @@ class SchedionApiService {
         cacheKey,
       );
       return cached == null ? null : parser(cached);
-    } catch (_) {
+    } catch (e, st) {
+      log(
+        "Failed to read cache $cacheKey",
+        name: _logName,
+        error: e,
+        stackTrace: st,
+      );
       return null;
     }
   }
@@ -85,7 +94,14 @@ class SchedionApiService {
       final T result = parser(data);
       try {
         await _storage.saveJsonCache(cacheKey, data);
-      } catch (_) {}
+      } catch (e, st) {
+        log(
+          "Failed to write cache $cacheKey",
+          name: _logName,
+          error: e,
+          stackTrace: st,
+        );
+      }
       return result;
     } on DioException catch (e) {
       if (_canUseCache(e)) {
@@ -95,7 +111,13 @@ class SchedionApiService {
         }
       }
       throw Exception(_errorMessage(e));
-    } catch (_) {
+    } catch (e, st) {
+      log(
+        "Invalid data for $cacheKey",
+        name: _logName,
+        error: e,
+        stackTrace: st,
+      );
       throw Exception("errorInvalidData");
     }
   }
