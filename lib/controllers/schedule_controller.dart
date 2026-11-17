@@ -7,6 +7,8 @@ import "package:asu_schedule/services/storage_service.dart";
 import "package:flutter/foundation.dart";
 
 class ScheduleController extends ChangeNotifier {
+  static const String _logName = "ScheduleController";
+
   final SchedionApiService _api;
   final StorageService _storage;
 
@@ -143,8 +145,13 @@ class ScheduleController extends ChangeNotifier {
         groupId: groupId,
         teacherId: teacherId,
       );
-    } catch (_) {
-      // Не удалось сохранить фильтры - расписание всё равно загружаем.
+        } catch (e, st) {
+      log(
+        "Failed to save filters",
+        name: _logName,
+        error: e,
+        stackTrace: st,
+      );
     }
     await loadSchedule();
   }
