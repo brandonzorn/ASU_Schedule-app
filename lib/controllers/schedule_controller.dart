@@ -112,6 +112,14 @@ class ScheduleController extends ChangeNotifier {
     }
   }
 
+  void retry() {
+    if (weekList == null) {
+      unawaited(initialize());
+    } else {
+      unawaited(loadSchedule());
+    }
+  }
+
   void selectWeek(String weekStart) {
     if (selectedWeek == weekStart) {
       return;
