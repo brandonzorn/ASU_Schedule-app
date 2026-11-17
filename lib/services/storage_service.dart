@@ -1,8 +1,11 @@
 import "dart:convert";
+import "dart:developer";
 
 import "package:shared_preferences/shared_preferences.dart";
 
 class StorageService {
+  static const String _logName = "StorageService";
+
   static const String _courseKey = "saved_course";
   static const String _groupKey = "saved_group";
   static const String _teacherKey = "saved_teacher";
@@ -65,8 +68,13 @@ class StorageService {
       if (decoded is Map<String, dynamic>) {
         return decoded;
       }
-    } on FormatException {
-      // Выбрасываем поврежденный кэш
+    } on FormatException catch (e, st) {
+      log(
+        "Corrupted cache $key removed",
+        name: _logName,
+        error: e,
+        stackTrace: st,
+      );
     }
     await prefs.remove(key);
     return null;
