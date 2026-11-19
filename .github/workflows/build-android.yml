@@ -22,19 +22,22 @@ jobs:
           distribution: temurin
           java-version: '25'
 
-      - name: Setup Flutter
+      - name: Setup Flutter SDK
         uses: flutter-actions/setup-flutter@v5
         with:
-          version: 3.50.0
           channel: stable
+          version: 3.50.0
           cache: true
           cache-sdk: true
 
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Analyze
-        run: flutter analyze
+      - name: Analyze project source
+        run: dart analyze
+
+      - name: Run tests
+        run: flutter test
 
       - name: Configure Android signing
         env:
