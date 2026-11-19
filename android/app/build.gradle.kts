@@ -8,10 +8,12 @@ plugins {
 
 val keystoreProperties = Properties()
 val keystorePropertiesFile = rootProject.file("key.properties")
-val hasReleaseKey = keystorePropertiesFile.exists()
-if (hasReleaseKey) {
-    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+
+require(keystorePropertiesFile.exists()) {
+    "Release signing configuration is missing. Create android/key.properties."
 }
+
+keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 
 android {
     namespace = "com.bzorn.asu_schedule"
@@ -37,23 +39,17 @@ android {
     }
 
     signingConfigs {
-        if (hasReleaseKey) {
-            create("release") {
-                keyAlias = keystoreProperties.getProperty("keyAlias") as String
-                keyPassword = keystoreProperties.getProperty("keyPassword") as String
-                storeFile = file(keystoreProperties.getProperty("storeFile") as String)
-                storePassword = keystoreProperties.getProperty("storePassword") as String
-            }
+        create("release") {
+            keyAlias = keystoreProperties.getProperty("keyAlias") as String
+            keyPassword = keystoreProperties.getProperty("keyPassword") as String
+            storeFile = file(keystoreProperties.getProperty("storeFile") as String)
+            storePassword = keystoreProperties.getProperty("storePassword") as String
         }
     }
 
     buildTypes {
         release {
-            signingConfig = if (hasReleaseKey) {
-                signingConfigs.getByName("release")
-            } else {
-                signingConfigs.getByName("debug")
-            }
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 }
