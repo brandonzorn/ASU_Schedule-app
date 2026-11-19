@@ -23,10 +23,11 @@ jobs:
           java-version: '25'
 
       - name: Setup Flutter
-        uses: flutter-actions/setup-flutter@v4
+        uses: flutter-actions/setup-flutter@v5
         with:
           channel: stable
           cache: true
+          cache-sdk: true
 
       - name: Install dependencies
         run: flutter pub get
