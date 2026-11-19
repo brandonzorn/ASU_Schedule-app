@@ -11,7 +11,10 @@ class WeekSelectorBar extends StatefulWidget {
   final ValueChanged<String> onWeekSelected;
 
   const WeekSelectorBar({
-    required this.weeks, required this.selectedWeekStart, required this.onWeekSelected, super.key,
+    required this.weeks,
+    required this.selectedWeekStart,
+    required this.onWeekSelected,
+    super.key,
   });
 
   @override

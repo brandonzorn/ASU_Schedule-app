@@ -22,17 +22,22 @@ jobs:
           distribution: temurin
           java-version: '25'
 
-      - name: Setup Flutter
-        uses: flutter-actions/setup-flutter@v4
+      - name: Setup Flutter SDK
+        uses: flutter-actions/setup-flutter@v5
         with:
           channel: stable
+          version: 3.50.0
           cache: true
+          cache-sdk: true
 
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Analyze
-        run: flutter analyze
+      - name: Analyze project source
+        run: dart analyze
+
+      - name: Run tests
+        run: flutter test
 
       - name: Configure Android signing
         env:
@@ -49,7 +54,7 @@ jobs:
           keyAlias=$KEY_ALIAS
           storeFile=upload-keystore.jks
           EOF
-        
+
       - name: Build APK
         run: flutter build apk --release
 
@@ -57,7 +62,6 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: android-builds
-          path: |
-            build/app/outputs/flutter-apk/*.apk
+          path: build/app/outputs/flutter-apk/*.apk
           if-no-files-found: error
           retention-days: 14

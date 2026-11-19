@@ -8,7 +8,7 @@ import "package:dio/dio.dart";
 
 class SchedionApiService {
   static const String _logName = "SchedionApi";
- 
+
   final Dio _dio = SchedionApiConfig.createDio();
   final StorageService _storage;
 

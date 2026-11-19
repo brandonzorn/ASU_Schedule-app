@@ -30,8 +30,9 @@ class ScheduleController extends ChangeNotifier {
   int _requestId = 0;
   bool _disposed = false;
 
-  WeekItem? get currentWeekItem =>
-      weekList?.items.where((WeekItem w) => w.start == selectedWeek).firstOrNull;
+  WeekItem? get currentWeekItem => weekList?.items
+      .where((WeekItem w) => w.start == selectedWeek)
+      .firstOrNull;
 
   String _messageOf(Object e) => e.toString().replaceFirst("Exception: ", "");
 
@@ -54,7 +55,8 @@ class ScheduleController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final ({int? course, int? groupId, int? teacherId}) saved = await _storage.loadSavedFilters();
+      final ({int? course, int? groupId, int? teacherId}) saved = await _storage
+          .loadSavedFilters();
       selectedCourse = saved.course;
       selectedGroupId = saved.groupId;
       selectedTeacherId = saved.teacherId;
@@ -146,13 +148,8 @@ class ScheduleController extends ChangeNotifier {
         groupId: groupId,
         teacherId: teacherId,
       );
-        } catch (e, st) {
-      log(
-        "Failed to save filters",
-        name: _logName,
-        error: e,
-        stackTrace: st,
-      );
+    } catch (e, st) {
+      log("Failed to save filters", name: _logName, error: e, stackTrace: st);
     }
     await loadSchedule();
   }

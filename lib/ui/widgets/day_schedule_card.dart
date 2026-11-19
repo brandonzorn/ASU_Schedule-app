@@ -13,7 +13,12 @@ class DayScheduleCard extends StatelessWidget {
   final Map<int, PairItem> pairs;
 
   const DayScheduleCard({
-    required this.weekdayName, required this.dateStr, required this.lessons, required this.cancellations, required this.pairs, super.key,
+    required this.weekdayName,
+    required this.dateStr,
+    required this.lessons,
+    required this.cancellations,
+    required this.pairs,
+    super.key,
   });
 
   @override
@@ -41,8 +46,10 @@ class DayScheduleCard extends StatelessWidget {
             ),
             const Divider(height: 8),
 
-            for (final ScheduleCancellation c in cancellations) CancellationBanner(cancellation: c),
-            for (final (int index, ScheduleLesson lesson) in lessons.indexed) ...<Widget>[
+            for (final ScheduleCancellation c in cancellations)
+              CancellationBanner(cancellation: c),
+            for (final (int index, ScheduleLesson lesson)
+                in lessons.indexed) ...<Widget>[
               LessonTile(lesson: lesson, pairInfo: pairs[lesson.pair]),
               if (index != lessons.length - 1) const Divider(height: 8),
             ],
