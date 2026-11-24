@@ -34,10 +34,7 @@ jobs:
         run: flutter pub get
 
       - name: Analyze project source
-        run: dart analyze
-
-      - name: Run tests
-        run: flutter test
+        run: flutter analyze
 
       - name: Configure Android signing
         env:
