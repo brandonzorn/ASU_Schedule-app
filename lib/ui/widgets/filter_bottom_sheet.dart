@@ -86,7 +86,10 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
               dropdownMenuEntries: <DropdownMenuEntry<int?>>[
                 DropdownMenuEntry<int?>(value: null, label: i18n.allCourses),
                 for (final int c in widget.filters.courses)
-                  DropdownMenuEntry<int>(value: c, label: i18n.courseNumber(c)),
+                  DropdownMenuEntry<int?>(
+                    value: c,
+                    label: i18n.courseNumber(c),
+                  ),
               ],
               onSelected: (int? val) => setState(() {
                 _course = val;
@@ -104,7 +107,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
               dropdownMenuEntries: <DropdownMenuEntry<int?>>[
                 DropdownMenuEntry<int?>(value: null, label: i18n.allGroups),
                 for (final GroupItem g in availableGroups)
-                  DropdownMenuEntry<int>(value: g.id, label: g.name),
+                  DropdownMenuEntry<int?>(value: g.id, label: g.name),
               ],
               onSelected: (int? val) => setState(() => _groupId = val),
             ),
@@ -119,7 +122,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
               dropdownMenuEntries: <DropdownMenuEntry<int?>>[
                 DropdownMenuEntry<int?>(value: null, label: i18n.allTeachers),
                 for (final TeacherItem t in widget.filters.teachers)
-                  DropdownMenuEntry<int>(value: t.id, label: t.shortName),
+                  DropdownMenuEntry<int?>(value: t.id, label: t.shortName),
               ],
               onSelected: (int? val) => setState(() => _teacherId = val),
             ),
