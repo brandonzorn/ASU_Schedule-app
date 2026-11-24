@@ -49,7 +49,7 @@ class ScheduleBody extends StatelessWidget {
               parent: BouncingScrollPhysics(),
             ),
             padding: const EdgeInsets.all(16),
-            children: [
+            children: <Widget>[
               if (error != null) ErrorBanner(message: i18n.errorText(error)),
               if (days.isEmpty)
                 EmptyWeekView(nextLessonDate: schedule.nextLessonDate)
