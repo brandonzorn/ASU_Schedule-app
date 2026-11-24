@@ -1,3 +1,10 @@
+String toIsoDate(DateTime d) {
+  final String year = d.year.toString().padLeft(4, "0");
+  final String month = d.month.toString().padLeft(2, "0");
+  final String day = d.day.toString().padLeft(2, "0");
+  return "$year-$month-$day";
+}
+
 String formatIsoDate(String iso) {
   final String date = iso.length >= 10 ? iso.substring(0, 10) : iso;
   final List<String> parts = date.split("-");

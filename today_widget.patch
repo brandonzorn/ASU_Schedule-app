@@ -1,0 +1,731 @@
+diff --git a/android/app/src/main/AndroidManifest.xml b/android/app/src/main/AndroidManifest.xml
+index 0f1be7e..448409e 100644
+--- a/android/app/src/main/AndroidManifest.xml
++++ b/android/app/src/main/AndroidManifest.xml
+@@ -25,6 +25,22 @@
+             </intent-filter>
+         </activity>
+ 
++        <receiver
++            android:name=".TodayWidgetProvider"
++            android:exported="false">
++            <intent-filter>
++                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
++            </intent-filter>
++            <meta-data
++                android:name="android.appwidget.provider"
++                android:resource="@xml/today_widget_info" />
++        </receiver>
++
++        <service
++            android:name=".TodayWidgetService"
++            android:exported="false"
++            android:permission="android.permission.BIND_REMOTEVIEWS" />
++
+         <meta-data
+             android:name="flutterEmbedding"
+             android:value="2" />
+diff --git a/android/app/src/main/kotlin/com/bzorn/asu_schedule/TodayWidgetData.kt b/android/app/src/main/kotlin/com/bzorn/asu_schedule/TodayWidgetData.kt
+new file mode 100644
+index 0000000..468850a
+--- /dev/null
++++ b/android/app/src/main/kotlin/com/bzorn/asu_schedule/TodayWidgetData.kt
+@@ -0,0 +1,101 @@
++package com.bzorn.asu_schedule
++
++import android.content.Context
++import org.json.JSONObject
++import java.time.LocalDate
++
++data class TodayRow(
++    val pairLabel: String,
++    val time: String,
++    val title: String,
++    val meta: String,
++    val cancelled: Boolean,
++    val isNote: Boolean,
++)
++
++sealed interface TodayState {
++    /** Данных нет или они относятся к другой неделе. */
++    data object NoData : TodayState
++
++    data class Day(val rows: List<TodayRow>) : TodayState
++}
++
++/** Читает JSON, который Flutter сохраняет через home_widget. */
++object TodayWidgetData {
++    private const val PREFS = "HomeWidgetPreferences"
++    private const val KEY = "today_widget_data"
++
++    fun load(context: Context, today: LocalDate = LocalDate.now()): TodayState {
++        val raw = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
++            .getString(KEY, null) ?: return TodayState.NoData
++        return try {
++            parse(context, raw, today)
++        } catch (e: Exception) {
++            TodayState.NoData
++        }
++    }
++
++    private fun JSONObject.str(name: String): String =
++        if (isNull(name)) "" else optString(name)
++
++    private fun parse(context: Context, raw: String, today: LocalDate): TodayState {
++        val root = JSONObject(raw)
++        val weekStart = LocalDate.parse(root.str("weekStart").take(10))
++        val weekEnd = LocalDate.parse(root.str("weekEnd").take(10))
++        if (today.isBefore(weekStart) || today.isAfter(weekEnd)) {
++            return TodayState.NoData
++        }
++
++        val day = root.optJSONObject("days")?.optJSONObject(today.toString())
++            ?: return TodayState.Day(emptyList())
++
++        val rows = mutableListOf<TodayRow>()
++
++        val notes = day.optJSONArray("notes")
++        for (i in 0 until (notes?.length() ?: 0)) {
++            val note = notes!!.getJSONObject(i)
++            val pairs = note.optJSONArray("pairs")
++            val pairsText = (0 until (pairs?.length() ?: 0))
++                .joinToString(", ") { pairs!!.getInt(it).toString() }
++            val reason = note.str("reason")
++            val text = if (pairsText.isEmpty()) {
++                context.getString(R.string.widget_note_all, reason)
++            } else {
++                context.getString(R.string.widget_note_pairs, pairsText, reason)
++            }
++            rows += TodayRow("", "", "\u26A0 $text", "", cancelled = false, isNote = true)
++        }
++
++        val lessons = day.optJSONArray("lessons")
++        for (i in 0 until (lessons?.length() ?: 0)) {
++            val lesson = lessons!!.getJSONObject(i)
++            val meta = buildList {
++                kindRes(lesson.str("kind"))?.let { add(context.getString(it)) }
++                lesson.str("room").takeIf { it.isNotBlank() }
++                    ?.let { add(context.getString(R.string.widget_room, it)) }
++                if (!lesson.isNull("subgroup")) {
++                    add(context.getString(R.string.widget_subgroup, lesson.getInt("subgroup")))
++                }
++                lesson.str("teachers").takeIf { it.isNotBlank() }?.let { add(it) }
++            }
++            rows += TodayRow(
++                pairLabel = context.getString(R.string.widget_pair, lesson.getInt("pair")),
++                time = lesson.str("time"),
++                title = lesson.str("discipline"),
++                meta = meta.joinToString(" \u2022 "),
++                cancelled = lesson.optBoolean("cancelled", false),
++                isNote = false,
++            )
++        }
++        return TodayState.Day(rows)
++    }
++
++    private fun kindRes(kind: String): Int? = when (kind) {
++        "lecture" -> R.string.widget_kind_lecture
++        "seminar" -> R.string.widget_kind_seminar
++        "laboratory" -> R.string.widget_kind_laboratory
++        "practical" -> R.string.widget_kind_practical
++        "selfStudy" -> R.string.widget_kind_self_study
++        else -> null
++    }
++}
+diff --git a/android/app/src/main/kotlin/com/bzorn/asu_schedule/TodayWidgetProvider.kt b/android/app/src/main/kotlin/com/bzorn/asu_schedule/TodayWidgetProvider.kt
+new file mode 100644
+index 0000000..f0714b8
+--- /dev/null
++++ b/android/app/src/main/kotlin/com/bzorn/asu_schedule/TodayWidgetProvider.kt
+@@ -0,0 +1,110 @@
++package com.bzorn.asu_schedule
++
++import android.app.AlarmManager
++import android.app.PendingIntent
++import android.appwidget.AppWidgetManager
++import android.appwidget.AppWidgetProvider
++import android.content.ComponentName
++import android.content.Context
++import android.content.Intent
++import android.net.Uri
++import android.widget.RemoteViews
++import java.time.LocalDate
++import java.time.ZoneId
++import java.time.format.DateTimeFormatter
++import java.util.Locale
++
++class TodayWidgetProvider : AppWidgetProvider() {
++
++    override fun onUpdate(
++        context: Context,
++        appWidgetManager: AppWidgetManager,
++        appWidgetIds: IntArray,
++    ) {
++        appWidgetIds.forEach { render(context, appWidgetManager, it) }
++        scheduleMidnightRefresh(context)
++    }
++
++    override fun onEnabled(context: Context) {
++        scheduleMidnightRefresh(context)
++    }
++
++    override fun onDisabled(context: Context) {
++        context.getSystemService(AlarmManager::class.java).cancel(midnightIntent(context))
++    }
++
++    override fun onReceive(context: Context, intent: Intent) {
++        if (intent.action == ACTION_MIDNIGHT) {
++            val manager = AppWidgetManager.getInstance(context)
++            val ids = manager.getAppWidgetIds(ComponentName(context, TodayWidgetProvider::class.java))
++            onUpdate(context, manager, ids)
++        } else {
++            super.onReceive(context, intent)
++        }
++    }
++
++    private fun render(context: Context, manager: AppWidgetManager, widgetId: Int) {
++        val views = RemoteViews(context.packageName, R.layout.widget_today)
++        val locale = Locale.getDefault()
++
++        val title = LocalDate.now()
++            .format(DateTimeFormatter.ofPattern("EEEE, d MMMM", locale))
++            .replaceFirstChar { it.titlecase(locale) }
++        views.setTextViewText(R.id.widget_title, title)
++
++        val state = TodayWidgetData.load(context)
++        views.setTextViewText(
++            R.id.widget_empty,
++            context.getString(
++                if (state is TodayState.NoData) R.string.widget_no_data else R.string.widget_empty,
++            ),
++        )
++
++        val serviceIntent = Intent(context, TodayWidgetService::class.java)
++        serviceIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId)
++        serviceIntent.data = Uri.parse(serviceIntent.toUri(Intent.URI_INTENT_SCHEME))
++        views.setRemoteAdapter(R.id.widget_list, serviceIntent)
++        views.setEmptyView(R.id.widget_list, R.id.widget_empty)
++
++        val launch = context.packageManager.getLaunchIntentForPackage(context.packageName)
++        if (launch != null) {
++            val rootIntent = PendingIntent.getActivity(
++                context, 0, launch,
++                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
++            )
++            views.setOnClickPendingIntent(R.id.widget_root, rootIntent)
++            views.setOnClickPendingIntent(R.id.widget_empty, rootIntent)
++
++            val itemTemplate = PendingIntent.getActivity(
++                context, 1, launch,
++                PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
++            )
++            views.setPendingIntentTemplate(R.id.widget_list, itemTemplate)
++        }
++
++        manager.updateAppWidget(widgetId, views)
++        manager.notifyAppWidgetViewDataChanged(widgetId, R.id.widget_list)
++    }
++
++    private fun midnightIntent(context: Context): PendingIntent {
++        val intent = Intent(context, TodayWidgetProvider::class.java).setAction(ACTION_MIDNIGHT)
++        return PendingIntent.getBroadcast(
++            context, 0, intent,
++            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
++        )
++    }
++
++    /** Неточный будильник на ближайшую полночь: смена дня без запуска приложения. */
++    private fun scheduleMidnightRefresh(context: Context) {
++        val triggerAt = LocalDate.now().plusDays(1)
++            .atStartOfDay(ZoneId.systemDefault())
++            .toInstant()
++            .toEpochMilli() + 5_000
++        context.getSystemService(AlarmManager::class.java)
++            .set(AlarmManager.RTC, triggerAt, midnightIntent(context))
++    }
++
++    private companion object {
++        const val ACTION_MIDNIGHT = "com.bzorn.asu_schedule.ACTION_TODAY_WIDGET_MIDNIGHT"
++    }
++}
+diff --git a/android/app/src/main/kotlin/com/bzorn/asu_schedule/TodayWidgetService.kt b/android/app/src/main/kotlin/com/bzorn/asu_schedule/TodayWidgetService.kt
+new file mode 100644
+index 0000000..d82e29d
+--- /dev/null
++++ b/android/app/src/main/kotlin/com/bzorn/asu_schedule/TodayWidgetService.kt
+@@ -0,0 +1,70 @@
++package com.bzorn.asu_schedule
++
++import android.content.Context
++import android.content.Intent
++import android.text.SpannableString
++import android.text.Spanned
++import android.text.style.StrikethroughSpan
++import android.view.View
++import android.widget.RemoteViews
++import android.widget.RemoteViewsService
++
++class TodayWidgetService : RemoteViewsService() {
++    override fun onGetViewFactory(intent: Intent): RemoteViewsFactory =
++        Factory(applicationContext)
++
++    private class Factory(private val context: Context) : RemoteViewsFactory {
++        private var rows: List<TodayRow> = emptyList()
++
++        override fun onCreate() = Unit
++
++        override fun onDataSetChanged() {
++            rows = (TodayWidgetData.load(context) as? TodayState.Day)?.rows.orEmpty()
++        }
++
++        override fun onDestroy() {
++            rows = emptyList()
++        }
++
++        override fun getCount(): Int = rows.size
++
++        override fun getViewAt(position: Int): RemoteViews? {
++            val row = rows.getOrNull(position) ?: return null
++            val views = RemoteViews(context.packageName, R.layout.widget_today_item)
++
++            views.setViewVisibility(
++                R.id.item_pair_column,
++                if (row.isNote) View.GONE else View.VISIBLE,
++            )
++            views.setTextViewText(R.id.item_pair, row.pairLabel)
++            views.setTextViewText(R.id.item_time, row.time)
++
++            val title = SpannableString(row.title)
++            if (row.cancelled) {
++                title.setSpan(StrikethroughSpan(), 0, title.length, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
++            }
++            views.setTextViewText(R.id.item_title, title)
++
++            val meta = if (row.cancelled) {
++                listOf(row.meta, context.getString(R.string.widget_cancelled))
++                    .filter { it.isNotBlank() }
++                    .joinToString(" \u2022 ")
++            } else {
++                row.meta
++            }
++            views.setTextViewText(R.id.item_meta, meta)
++            views.setViewVisibility(R.id.item_meta, if (meta.isBlank()) View.GONE else View.VISIBLE)
++
++            views.setOnClickFillInIntent(R.id.item_root, Intent())
++            return views
++        }
++
++        override fun getLoadingView(): RemoteViews? = null
++
++        override fun getViewTypeCount(): Int = 1
++
++        override fun getItemId(position: Int): Long = position.toLong()
++
++        override fun hasStableIds(): Boolean = true
++    }
++}
+diff --git a/android/app/src/main/res/drawable/widget_background.xml b/android/app/src/main/res/drawable/widget_background.xml
+new file mode 100644
+index 0000000..14130a8
+--- /dev/null
++++ b/android/app/src/main/res/drawable/widget_background.xml
+@@ -0,0 +1,6 @@
++<?xml version="1.0" encoding="utf-8"?>
++<shape xmlns:android="http://schemas.android.com/apk/res/android"
++    android:shape="rectangle">
++    <solid android:color="@color/widget_surface" />
++    <corners android:radius="20dp" />
++</shape>
+diff --git a/android/app/src/main/res/layout/widget_today.xml b/android/app/src/main/res/layout/widget_today.xml
+new file mode 100644
+index 0000000..55b6845
+--- /dev/null
++++ b/android/app/src/main/res/layout/widget_today.xml
+@@ -0,0 +1,42 @@
++<?xml version="1.0" encoding="utf-8"?>
++<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
++    android:id="@+id/widget_root"
++    android:layout_width="match_parent"
++    android:layout_height="match_parent"
++    android:background="@drawable/widget_background"
++    android:orientation="vertical"
++    android:padding="12dp">
++
++    <TextView
++        android:id="@+id/widget_title"
++        android:layout_width="match_parent"
++        android:layout_height="wrap_content"
++        android:ellipsize="end"
++        android:maxLines="1"
++        android:paddingBottom="6dp"
++        android:textColor="@color/widget_primary"
++        android:textSize="16sp"
++        android:textStyle="bold" />
++
++    <FrameLayout
++        android:layout_width="match_parent"
++        android:layout_height="0dp"
++        android:layout_weight="1">
++
++        <ListView
++            android:id="@+id/widget_list"
++            android:layout_width="match_parent"
++            android:layout_height="match_parent"
++            android:divider="@null"
++            android:dividerHeight="0dp" />
++
++        <TextView
++            android:id="@+id/widget_empty"
++            android:layout_width="match_parent"
++            android:layout_height="match_parent"
++            android:gravity="center"
++            android:text="@string/widget_empty"
++            android:textColor="@color/widget_text_secondary"
++            android:textSize="14sp" />
++    </FrameLayout>
++</LinearLayout>
+diff --git a/android/app/src/main/res/layout/widget_today_item.xml b/android/app/src/main/res/layout/widget_today_item.xml
+new file mode 100644
+index 0000000..b47b92b
+--- /dev/null
++++ b/android/app/src/main/res/layout/widget_today_item.xml
+@@ -0,0 +1,52 @@
++<?xml version="1.0" encoding="utf-8"?>
++<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
++    android:id="@+id/item_root"
++    android:layout_width="match_parent"
++    android:layout_height="wrap_content"
++    android:orientation="horizontal"
++    android:paddingTop="4dp"
++    android:paddingBottom="4dp">
++
++    <LinearLayout
++        android:id="@+id/item_pair_column"
++        android:layout_width="72dp"
++        android:layout_height="wrap_content"
++        android:orientation="vertical">
++
++        <TextView
++            android:id="@+id/item_pair"
++            android:layout_width="wrap_content"
++            android:layout_height="wrap_content"
++            android:textColor="@color/widget_primary"
++            android:textSize="13sp"
++            android:textStyle="bold" />
++
++        <TextView
++            android:id="@+id/item_time"
++            android:layout_width="wrap_content"
++            android:layout_height="wrap_content"
++            android:textColor="@color/widget_text_secondary"
++            android:textSize="12sp" />
++    </LinearLayout>
++
++    <LinearLayout
++        android:layout_width="0dp"
++        android:layout_height="wrap_content"
++        android:layout_weight="1"
++        android:orientation="vertical">
++
++        <TextView
++            android:id="@+id/item_title"
++            android:layout_width="match_parent"
++            android:layout_height="wrap_content"
++            android:textColor="@color/widget_text_primary"
++            android:textSize="14sp" />
++
++        <TextView
++            android:id="@+id/item_meta"
++            android:layout_width="match_parent"
++            android:layout_height="wrap_content"
++            android:textColor="@color/widget_text_secondary"
++            android:textSize="12sp" />
++    </LinearLayout>
++</LinearLayout>
+diff --git a/android/app/src/main/res/values-en/strings.xml b/android/app/src/main/res/values-en/strings.xml
+index 724356d..b897dee 100644
+--- a/android/app/src/main/res/values-en/strings.xml
++++ b/android/app/src/main/res/values-en/strings.xml
+@@ -1,4 +1,18 @@
+ <?xml version="1.0" encoding="utf-8"?>
+ <resources>
+     <string name="app_name">ASU Schedule</string>
++    <string name="widget_description">Today\'s schedule</string>
++    <string name="widget_empty">No classes today</string>
++    <string name="widget_no_data">Open the app to refresh the schedule</string>
++    <string name="widget_pair">Pair %1$d</string>
++    <string name="widget_room">room %1$s</string>
++    <string name="widget_subgroup">subgroup %1$d</string>
++    <string name="widget_cancelled">Cancelled</string>
++    <string name="widget_note_all">Classes cancelled: %1$s</string>
++    <string name="widget_note_pairs">Pairs %1$s cancelled: %2$s</string>
++    <string name="widget_kind_lecture">Lecture</string>
++    <string name="widget_kind_seminar">Seminar</string>
++    <string name="widget_kind_laboratory">Laboratory</string>
++    <string name="widget_kind_practical">Practical</string>
++    <string name="widget_kind_self_study">Self-study</string>
+ </resources>
+\ No newline at end of file
+diff --git a/android/app/src/main/res/values-night/colors.xml b/android/app/src/main/res/values-night/colors.xml
+new file mode 100644
+index 0000000..c6bd623
+--- /dev/null
++++ b/android/app/src/main/res/values-night/colors.xml
+@@ -0,0 +1,7 @@
++<?xml version="1.0" encoding="utf-8"?>
++<resources>
++    <color name="widget_surface">#1E2026</color>
++    <color name="widget_primary">#9DB8FF</color>
++    <color name="widget_text_primary">#E3E2E6</color>
++    <color name="widget_text_secondary">#A9ACB4</color>
++</resources>
+diff --git a/android/app/src/main/res/values/colors.xml b/android/app/src/main/res/values/colors.xml
+index f781bfd..453411a 100644
+--- a/android/app/src/main/res/values/colors.xml
++++ b/android/app/src/main/res/values/colors.xml
+@@ -1,4 +1,8 @@
+ <?xml version="1.0" encoding="utf-8"?>
+ <resources>
+     <color name="ic_launcher_background">#2563EB</color>
++    <color name="widget_surface">#F5F7FB</color>
++    <color name="widget_primary">#2563EB</color>
++    <color name="widget_text_primary">#1B1B1F</color>
++    <color name="widget_text_secondary">#5C5F66</color>
+ </resources>
+\ No newline at end of file
+diff --git a/android/app/src/main/res/values/strings.xml b/android/app/src/main/res/values/strings.xml
+index 34e6650..ef7e43c 100644
+--- a/android/app/src/main/res/values/strings.xml
++++ b/android/app/src/main/res/values/strings.xml
+@@ -1,4 +1,18 @@
+ <?xml version="1.0" encoding="utf-8"?>
+ <resources>
+     <string name="app_name">Расписание АГУ</string>
++    <string name="widget_description">Расписание на сегодня</string>
++    <string name="widget_empty">Сегодня занятий нет</string>
++    <string name="widget_no_data">Откройте приложение, чтобы обновить расписание</string>
++    <string name="widget_pair">%1$d пара</string>
++    <string name="widget_room">ауд. %1$s</string>
++    <string name="widget_subgroup">подгруппа %1$d</string>
++    <string name="widget_cancelled">Отменено</string>
++    <string name="widget_note_all">Занятия отменены: %1$s</string>
++    <string name="widget_note_pairs">Отменены пары %1$s: %2$s</string>
++    <string name="widget_kind_lecture">Лекция</string>
++    <string name="widget_kind_seminar">Семинар</string>
++    <string name="widget_kind_laboratory">Лабораторная</string>
++    <string name="widget_kind_practical">Практика</string>
++    <string name="widget_kind_self_study">Самостоятельная работа</string>
+ </resources>
+\ No newline at end of file
+diff --git a/android/app/src/main/res/xml/today_widget_info.xml b/android/app/src/main/res/xml/today_widget_info.xml
+new file mode 100644
+index 0000000..9de9fe2
+--- /dev/null
++++ b/android/app/src/main/res/xml/today_widget_info.xml
+@@ -0,0 +1,13 @@
++<?xml version="1.0" encoding="utf-8"?>
++<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
++    android:description="@string/widget_description"
++    android:initialLayout="@layout/widget_today"
++    android:minWidth="250dp"
++    android:minHeight="110dp"
++    android:minResizeWidth="180dp"
++    android:minResizeHeight="110dp"
++    android:resizeMode="horizontal|vertical"
++    android:targetCellWidth="4"
++    android:targetCellHeight="2"
++    android:updatePeriodMillis="1800000"
++    android:widgetCategory="home_screen" />
+diff --git a/lib/controllers/schedule_controller.dart b/lib/controllers/schedule_controller.dart
+index e23dc13..3977cb5 100644
+--- a/lib/controllers/schedule_controller.dart
++++ b/lib/controllers/schedule_controller.dart
+@@ -5,6 +5,7 @@ import "package:asu_schedule/models/reference_models.dart";
+ import "package:asu_schedule/models/schedule_models.dart";
+ import "package:asu_schedule/services/schedion_api_service.dart";
+ import "package:asu_schedule/services/storage_service.dart";
++import "package:asu_schedule/services/today_widget_service.dart";
+ import "package:flutter/foundation.dart";
+ 
+ class ScheduleController extends ChangeNotifier {
+@@ -12,8 +13,13 @@ class ScheduleController extends ChangeNotifier {
+ 
+   final SchedionApiService _api;
+   final StorageService _storage;
++  final TodayWidgetService _widget;
+ 
+-  ScheduleController({required this._api, required this._storage});
++  ScheduleController({
++    required this._api,
++    required this._storage,
++    required this._widget,
++  });
+ 
+   Map<int, PairItem> pairs = <int, PairItem>{};
+   WeekList? weekList;
+@@ -116,6 +122,7 @@ class ScheduleController extends ChangeNotifier {
+ 
+       schedule = result;
+       selectedWeek = result.weekStart;
++      unawaited(_widget.publish(result, pairs));
+     } catch (e) {
+       if (requestId != _requestId) {
+         return;
+diff --git a/lib/main.dart b/lib/main.dart
+index 06e467d..85bf02c 100644
+--- a/lib/main.dart
++++ b/lib/main.dart
+@@ -5,6 +5,7 @@ import "package:asu_schedule/controllers/theme_controller.dart";
+ import "package:asu_schedule/i18n/app_localizations.dart";
+ import "package:asu_schedule/services/schedion_api_service.dart";
+ import "package:asu_schedule/services/storage_service.dart";
++import "package:asu_schedule/services/today_widget_service.dart";
+ import "package:asu_schedule/ui/screens/schedule_screen.dart";
+ import "package:dynamic_color/dynamic_color.dart";
+ import "package:material_ui/material_ui.dart";
+@@ -21,6 +22,7 @@ Future<void> main() async {
+   final ScheduleController scheduleController = ScheduleController(
+     api: apiService,
+     storage: storageService,
++    widget: TodayWidgetService(),
+   );
+   unawaited(scheduleController.initialize());
+ 
+diff --git a/lib/services/today_widget_service.dart b/lib/services/today_widget_service.dart
+new file mode 100644
+index 0000000..157c3ab
+--- /dev/null
++++ b/lib/services/today_widget_service.dart
+@@ -0,0 +1,72 @@
++import "dart:convert";
++import "dart:developer";
++
++import "package:asu_schedule/models/reference_models.dart";
++import "package:asu_schedule/models/schedule_models.dart";
++import "package:asu_schedule/utils/date_format.dart";
++import "package:asu_schedule/utils/schedule_day_grouping.dart";
++import "package:flutter/foundation.dart";
++import "package:home_widget/home_widget.dart";
++
++/// Передаёт расписание текущей недели в виджет «Сегодня» на домашнем экране
++/// Android. Выбор нужного дня делает сам виджет (Kotlin), поэтому в полночь он
++/// обновляется без запуска приложения.
++class TodayWidgetService {
++  static const String _logName = "TodayWidgetService";
++  static const String _dataKey = "today_widget_data";
++  static const String _androidProvider =
++      "com.bzorn.asu_schedule.TodayWidgetProvider";
++
++  bool get _isSupported =>
++      !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
++
++  Future<void> publish(ScheduleWeek schedule, Map<int, PairItem> pairs) async {
++    if (!_isSupported) {
++      return;
++    }
++
++    // Не затираем данные текущей недели, если пользователь листает другую.
++    final String today = toIsoDate(DateTime.now());
++    if (today.compareTo(schedule.weekStart) < 0 ||
++        today.compareTo(schedule.weekEnd) > 0) {
++      return;
++    }
++
++    try {
++      final Map<String, Object?> payload = <String, Object?>{
++        "savedAt": DateTime.now().toUtc().toIso8601String(),
++        "weekStart": schedule.weekStart,
++        "weekEnd": schedule.weekEnd,
++        "days": <String, Object?>{
++          for (final DaySchedule day in groupScheduleByDay(schedule))
++            day.dateStr: <String, Object?>{
++              "notes": <Object?>[
++                for (final ScheduleCancellation c in day.cancellations)
++                  <String, Object?>{"pairs": c.pairs, "reason": c.reason},
++              ],
++              "lessons": <Object?>[
++                for (final ScheduleLesson l in day.lessons)
++                  <String, Object?>{
++                    "pair": l.pair,
++                    "time": pairs[l.pair]?.formattedTime ?? "",
++                    "discipline": l.discipline,
++                    "kind": l.kind.name,
++                    "room": l.room,
++                    "subgroup": l.subgroup,
++                    "teachers": l.teachers
++                        .map((ScheduleTeacher t) => t.shortName)
++                        .join(", "),
++                    "cancelled": l.isCancelled,
++                  },
++              ],
++            },
++        },
++      };
++
++      await HomeWidget.saveWidgetData<String>(_dataKey, jsonEncode(payload));
++      await HomeWidget.updateWidget(qualifiedAndroidName: _androidProvider);
++    } on Object catch (e, st) {
++      log("Failed to update widget", name: _logName, error: e, stackTrace: st);
++    }
++  }
++}
+diff --git a/lib/utils/date_format.dart b/lib/utils/date_format.dart
+index a787fe4..817ea76 100644
+--- a/lib/utils/date_format.dart
++++ b/lib/utils/date_format.dart
+@@ -1,3 +1,10 @@
++String toIsoDate(DateTime d) {
++  final String year = d.year.toString().padLeft(4, "0");
++  final String month = d.month.toString().padLeft(2, "0");
++  final String day = d.day.toString().padLeft(2, "0");
++  return "$year-$month-$day";
++}
++
+ String formatIsoDate(String iso) {
+   final String date = iso.length >= 10 ? iso.substring(0, 10) : iso;
+   final List<String> parts = date.split("-");
+diff --git a/lib/utils/schedule_day_grouping.dart b/lib/utils/schedule_day_grouping.dart
+index 1164ced..eae869d 100644
+--- a/lib/utils/schedule_day_grouping.dart
++++ b/lib/utils/schedule_day_grouping.dart
+@@ -1,4 +1,5 @@
+ import "package:asu_schedule/models/schedule_models.dart";
++import "package:asu_schedule/utils/date_format.dart";
+ 
+ class DaySchedule {
+   final int weekdayIndex;
+@@ -14,13 +15,6 @@ class DaySchedule {
+   });
+ }
+ 
+-String _isoDate(DateTime d) {
+-  final String year = d.year.toString().padLeft(4, "0");
+-  final String month = d.month.toString().padLeft(2, "0");
+-  final String day = d.day.toString().padLeft(2, "0");
+-  return "$year-$month-$day";
+-}
+-
+ List<DaySchedule> groupScheduleByDay(ScheduleWeek schedule) {
+   final DateTime start = DateTime.parse("${schedule.weekStart}T00:00:00Z");
+ 
+@@ -32,7 +26,7 @@ List<DaySchedule> groupScheduleByDay(ScheduleWeek schedule) {
+ 
+   final List<DaySchedule> days = <DaySchedule>[];
+   for (int i = 0; i < 7; i++) {
+-    final String dateStr = _isoDate(
++    final String dateStr = toIsoDate(
+       DateTime.utc(start.year, start.month, start.day + i),
+     );
+ 
+diff --git a/pubspec.yaml b/pubspec.yaml
+index a2126f1..6de1892 100644
+--- a/pubspec.yaml
++++ b/pubspec.yaml
+@@ -20,6 +20,7 @@ dependencies:
+ 
+   dio: ^5.11.1
+   dynamic_color: ^2.1.0
++  home_widget: ^0.10.0
+   material_ui: ^1.11.0
+   shared_preferences: ^2.5.6
+ 

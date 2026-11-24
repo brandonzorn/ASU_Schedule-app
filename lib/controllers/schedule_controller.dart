@@ -5,6 +5,7 @@ import "package:asu_schedule/models/reference_models.dart";
 import "package:asu_schedule/models/schedule_models.dart";
 import "package:asu_schedule/services/schedion_api_service.dart";
 import "package:asu_schedule/services/storage_service.dart";
+import "package:asu_schedule/services/today_widget_service.dart";
 import "package:flutter/foundation.dart";
 
 class ScheduleController extends ChangeNotifier {
@@ -12,8 +13,13 @@ class ScheduleController extends ChangeNotifier {
 
   final SchedionApiService _api;
   final StorageService _storage;
+  final TodayWidgetService _widget;
 
-  ScheduleController({required this._api, required this._storage});
+  ScheduleController({
+    required this._api,
+    required this._storage,
+    required this._widget,
+  });
 
   Map<int, PairItem> pairs = <int, PairItem>{};
   WeekList? weekList;
@@ -100,6 +106,7 @@ class ScheduleController extends ChangeNotifier {
 
       schedule = result;
       selectedWeek = result.weekStart;
+      unawaited(_widget.publish(result, pairs));
     } catch (e) {
       if (requestId != _requestId) {
         return;
