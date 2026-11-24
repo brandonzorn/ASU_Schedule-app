@@ -1,4 +1,5 @@
 import "package:asu_schedule/models/schedule_models.dart";
+import "package:asu_schedule/utils/date_format.dart";
 
 class DaySchedule {
   final int weekdayIndex;
@@ -14,13 +15,6 @@ class DaySchedule {
   });
 }
 
-String _isoDate(DateTime d) {
-  final String year = d.year.toString().padLeft(4, "0");
-  final String month = d.month.toString().padLeft(2, "0");
-  final String day = d.day.toString().padLeft(2, "0");
-  return "$year-$month-$day";
-}
-
 List<DaySchedule> groupScheduleByDay(ScheduleWeek schedule) {
   final DateTime start = DateTime.parse("${schedule.weekStart}T00:00:00Z");
 
@@ -32,7 +26,7 @@ List<DaySchedule> groupScheduleByDay(ScheduleWeek schedule) {
 
   final List<DaySchedule> days = <DaySchedule>[];
   for (int i = 0; i < 7; i++) {
-    final String dateStr = _isoDate(
+    final String dateStr = toIsoDate(
       DateTime.utc(start.year, start.month, start.day + i),
     );
 
