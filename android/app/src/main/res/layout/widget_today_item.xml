@@ -9,7 +9,8 @@
 
     <LinearLayout
         android:id="@+id/item_pair_column"
-        android:layout_width="72dp"
+        android:layout_width="88dp"
+        android:paddingEnd="8dp"
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
@@ -39,6 +40,8 @@
             android:id="@+id/item_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="2"
             android:textColor="@color/widget_text_primary"
             android:textSize="14sp" />
 
@@ -46,6 +49,8 @@
             android:id="@+id/item_meta"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
             android:textColor="@color/widget_text_secondary"
             android:textSize="12sp" />
     </LinearLayout>

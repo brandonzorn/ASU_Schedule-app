@@ -80,7 +80,7 @@ object TodayWidgetData {
             }
             rows += TodayRow(
                 pairLabel = context.getString(R.string.widget_pair, lesson.getInt("pair")),
-                time = lesson.str("time"),
+                time = lesson.str("time").replace(" - ", "\u2013"),
                 title = lesson.str("discipline"),
                 meta = meta.joinToString(" \u2022 "),
                 cancelled = lesson.optBoolean("cancelled", false),
