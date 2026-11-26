@@ -40,7 +40,20 @@ class ScheduleController extends ChangeNotifier {
       .where((WeekItem w) => w.start == selectedWeek)
       .firstOrNull;
 
-  String _messageOf(Object e) => e.toString().replaceFirst("Exception: ", "");
+  String _messageOf(Object e) {
+    final Object cause = _unwrap(e);
+    return cause.toString().replaceFirst("Exception: ", "");
+  }
+
+  Object _unwrap(Object e) {
+    if (e is ParallelWaitError<dynamic, dynamic>) {
+      final Object? errors = e.errors;
+      if (errors is (AsyncError?, AsyncError?)) {
+        return errors.$1?.error ?? errors.$2?.error ?? e;
+      }
+    }
+    return e;
+  }
 
   @override
   void notifyListeners() {

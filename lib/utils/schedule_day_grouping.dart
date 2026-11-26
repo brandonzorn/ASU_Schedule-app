@@ -15,6 +15,15 @@ class DaySchedule {
   });
 }
 
+int _compareLessons(ScheduleLesson a, ScheduleLesson b) {
+  final int byPair = a.pair.compareTo(b.pair);
+  if (byPair != 0) {
+    return byPair;
+  }
+  final int bySubgroup = (a.subgroup ?? 0).compareTo(b.subgroup ?? 0);
+  return bySubgroup != 0 ? bySubgroup : a.id.compareTo(b.id);
+}
+
 List<DaySchedule> groupScheduleByDay(ScheduleWeek schedule) {
   final DateTime start = DateTime.parse("${schedule.weekStart}T00:00:00Z");
 
@@ -32,7 +41,7 @@ List<DaySchedule> groupScheduleByDay(ScheduleWeek schedule) {
 
     final List<ScheduleLesson> lessons = List<ScheduleLesson>.from(
       lessonsByDate[dateStr] ?? const <ScheduleLesson>[],
-    )..sort((ScheduleLesson a, ScheduleLesson b) => a.pair.compareTo(b.pair));
+    )..sort(_compareLessons);
 
     final List<ScheduleCancellation> cancellations = schedule.cancellations
         .where(

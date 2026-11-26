@@ -26,22 +26,25 @@ class SchedionApiService {
 
       final int retryAfter =
           int.tryParse(e.response?.headers.value("Retry-After") ?? "") ?? 1;
-      await Future<Duration>.delayed(
-        Duration(seconds: retryAfter.clamp(1, 10)),
-      );
+      await Future<void>.delayed(Duration(seconds: retryAfter.clamp(1, 10)));
       return await request();
     }
   }
 
   bool _canUseCache(DioException e) {
+    final int? status = e.response?.statusCode;
     switch (e.type) {
       case DioExceptionType.connectionError:
       case DioExceptionType.connectionTimeout:
+      case DioExceptionType.transformTimeout:
       case DioExceptionType.sendTimeout:
       case DioExceptionType.receiveTimeout:
         return true;
-      default:
-        final int? status = e.response?.statusCode;
+      case DioExceptionType.unknown:
+        return status == null || status == 429 || status >= 500;
+      case DioExceptionType.badCertificate:
+      case DioExceptionType.badResponse:
+      case DioExceptionType.cancel:
         return status != null && (status == 429 || status >= 500);
     }
   }

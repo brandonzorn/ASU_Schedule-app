@@ -1,3 +1,5 @@
+import "dart:developer";
+
 import "package:asu_schedule/services/storage_service.dart";
 import "package:material_ui/material_ui.dart";
 
@@ -9,8 +11,17 @@ class ThemeController extends ChangeNotifier {
   ThemeMode themeMode = ThemeMode.system;
 
   Future<void> initialize() async {
-    final String? name = await _storage.loadThemeMode();
-    themeMode = ThemeMode.values.asNameMap()[name] ?? ThemeMode.system;
+    try {
+      final String? name = await _storage.loadThemeMode();
+      themeMode = ThemeMode.values.asNameMap()[name] ?? ThemeMode.system;
+    } on Object catch (e, st) {
+      log(
+        "Failed to load theme",
+        name: "ThemeController",
+        error: e,
+        stackTrace: st,
+      );
+    }
   }
 
   Future<void> setThemeMode(ThemeMode mode) async {
@@ -19,6 +30,15 @@ class ThemeController extends ChangeNotifier {
     }
     themeMode = mode;
     notifyListeners();
-    await _storage.saveThemeMode(mode.name);
+    try {
+      await _storage.saveThemeMode(mode.name);
+    } on Object catch (e, st) {
+      log(
+        "Failed to save theme",
+        name: "ThemeController",
+        error: e,
+        stackTrace: st,
+      );
+    }
   }
 }
