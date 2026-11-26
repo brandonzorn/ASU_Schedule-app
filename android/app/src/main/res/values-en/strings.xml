@@ -1,4 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">ASU Schedule</string>
+    <string name="widget_description">Today\'s schedule</string>
+    <string name="widget_empty">No classes today</string>
+    <string name="widget_no_data">Open the app to refresh the schedule</string>
+    <string name="widget_pair">Pair %1$d</string>
+    <string name="widget_room">room %1$s</string>
+    <string name="widget_subgroup">subgroup %1$d</string>
+    <string name="widget_cancelled">Cancelled</string>
+    <string name="widget_note_all">Classes cancelled: %1$s</string>
+    <string name="widget_note_pairs">Pairs %1$s cancelled: %2$s</string>
+    <string name="widget_kind_lecture">Lecture</string>
+    <string name="widget_kind_seminar">Seminar</string>
+    <string name="widget_kind_laboratory">Laboratory</string>
+    <string name="widget_kind_practical">Practical</string>
+    <string name="widget_kind_self_study">Self-study</string>
 </resources>
