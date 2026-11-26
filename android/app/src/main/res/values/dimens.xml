@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Widget Spacing & Padding -->
+    <dimen name="widget_margin">0dp</dimen>
+    <dimen name="widget_padding">12dp</dimen>
+    <dimen name="widget_title_padding_bottom">6dp</dimen>
+    <dimen name="widget_item_padding_vertical">4dp</dimen>
+    <dimen name="widget_pair_col_width">90dp</dimen>
+    <dimen name="widget_pair_col_padding_end">8dp</dimen>
+    <dimen name="widget_corner_radius">16dp</dimen>
+
+    <!-- Typography Text Sizes -->
+    <dimen name="widget_text_size_title">16sp</dimen>
+    <dimen name="widget_text_size_body">14sp</dimen>
+    <dimen name="widget_text_size_pair">13sp</dimen>
+    <dimen name="widget_text_size_caption">12sp</dimen>
+</resources>

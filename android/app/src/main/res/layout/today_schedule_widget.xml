@@ -5,18 +5,14 @@
     android:layout_height="match_parent"
     android:background="@drawable/widget_background"
     android:orientation="vertical"
-    android:padding="12dp">
+    android:padding="@dimen/widget_padding">
 
     <TextView
         android:id="@+id/widget_title"
+        style="@style/WidgetTodaySchedule.Title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:ellipsize="end"
-        android:maxLines="1"
-        android:paddingBottom="6dp"
-        android:textColor="@color/widget_primary"
-        android:textSize="16sp"
-        android:textStyle="bold" />
+        android:paddingBottom="@dimen/widget_title_padding_bottom" />
 
     <FrameLayout
         android:layout_width="match_parent"
@@ -32,11 +28,9 @@
 
         <TextView
             android:id="@+id/widget_empty"
+            style="@style/WidgetTodaySchedule.Empty"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:gravity="center"
-            android:text="@string/widget_empty"
-            android:textColor="@color/widget_text_secondary"
-            android:textSize="14sp" />
+            android:text="@string/today_schedule_widget_empty" />
     </FrameLayout>
 </LinearLayout>

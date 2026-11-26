@@ -8,14 +8,11 @@ import "package:asu_schedule/utils/schedule_day_grouping.dart";
 import "package:flutter/foundation.dart";
 import "package:home_widget/home_widget.dart";
 
-/// Передаёт расписание текущей недели в виджет «Сегодня» на домашнем экране
-/// Android. Выбор нужного дня делает сам виджет (Kotlin), поэтому в полночь он
-/// обновляется без запуска приложения.
-class TodayWidgetService {
-  static const String _logName = "TodayWidgetService";
-  static const String _dataKey = "today_widget_data";
+class TodayScheduleWidgetService {
+  static const String _logName = "TodayScheduleWidgetService";
+  static const String _dataKey = "today_schedule_widget_data";
   static const String _androidProvider =
-      "com.bzorn.asu_schedule.TodayWidgetProvider";
+      "com.bzorn.asu_schedule.TodayScheduleWidget";
 
   bool get _isSupported =>
       !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
@@ -25,7 +22,6 @@ class TodayWidgetService {
       return;
     }
 
-    // Не затираем данные текущей недели, если пользователь листает другую.
     final String today = toIsoDate(DateTime.now());
     if (today.compareTo(schedule.weekStart) < 0 ||
         today.compareTo(schedule.weekEnd) > 0) {

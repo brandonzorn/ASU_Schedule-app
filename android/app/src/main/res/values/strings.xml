@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Расписание АГУ</string>
-    <string name="widget_description">Расписание на сегодня</string>
-    <string name="widget_empty">Сегодня занятий нет</string>
-    <string name="widget_no_data">Откройте приложение, чтобы обновить расписание</string>
-    <string name="widget_pair">%1$d пара</string>
-    <string name="widget_room">ауд. %1$s</string>
-    <string name="widget_subgroup">подгруппа %1$d</string>
-    <string name="widget_cancelled">Отменено</string>
-    <string name="widget_note_all">Занятия отменены: %1$s</string>
-    <string name="widget_note_pairs">Отменены пары %1$s: %2$s</string>
-    <string name="widget_kind_lecture">Лекция</string>
-    <string name="widget_kind_seminar">Семинар</string>
-    <string name="widget_kind_laboratory">Лабораторная</string>
-    <string name="widget_kind_practical">Практика</string>
-    <string name="widget_kind_self_study">Самостоятельная работа</string>
+    <string name="today_schedule_widget_description">Расписание на сегодня</string>
+    <string name="today_schedule_widget_empty">Сегодня занятий нет</string>
+    <string name="today_schedule_widget_no_data">Откройте приложение, чтобы обновить расписание</string>
+    <string name="today_schedule_widget_pair">%1$d пара</string>
+    <string name="today_schedule_widget_room">ауд. %1$s</string>
+    <string name="today_schedule_widget_subgroup">подгруппа %1$d</string>
+    <string name="today_schedule_widget_cancelled">Отменено</string>
+    <string name="today_schedule_widget_note_all">Занятия отменены: %1$s</string>
+    <string name="today_schedule_widget_note_pairs">Отменены пары %1$s: %2$s</string>
+    <string name="today_schedule_widget_kind_lecture">Лекция</string>
+    <string name="today_schedule_widget_kind_seminar">Семинар</string>
+    <string name="today_schedule_widget_kind_laboratory">Лабораторная</string>
+    <string name="today_schedule_widget_kind_practical">Практика</string>
+    <string name="today_schedule_widget_kind_self_study">Самостоятельная работа</string>
 </resources>

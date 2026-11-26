@@ -5,7 +5,7 @@ import "package:asu_schedule/controllers/theme_controller.dart";
 import "package:asu_schedule/i18n/app_localizations.dart";
 import "package:asu_schedule/services/schedion_api_service.dart";
 import "package:asu_schedule/services/storage_service.dart";
-import "package:asu_schedule/services/today_widget_service.dart";
+import "package:asu_schedule/services/today_schedule_widget_service.dart";
 import "package:asu_schedule/ui/screens/schedule_screen.dart";
 import "package:dynamic_color/dynamic_color.dart";
 import "package:material_ui/material_ui.dart";
@@ -22,7 +22,7 @@ Future<void> main() async {
   final ScheduleController scheduleController = ScheduleController(
     api: apiService,
     storage: storageService,
-    widget: TodayWidgetService(),
+    widget: TodayScheduleWidgetService(),
   );
   unawaited(scheduleController.initialize());
 

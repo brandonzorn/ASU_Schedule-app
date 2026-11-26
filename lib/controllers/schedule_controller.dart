@@ -5,7 +5,7 @@ import "package:asu_schedule/models/reference_models.dart";
 import "package:asu_schedule/models/schedule_models.dart";
 import "package:asu_schedule/services/schedion_api_service.dart";
 import "package:asu_schedule/services/storage_service.dart";
-import "package:asu_schedule/services/today_widget_service.dart";
+import "package:asu_schedule/services/today_schedule_widget_service.dart";
 import "package:flutter/foundation.dart";
 
 class ScheduleController extends ChangeNotifier {
@@ -13,7 +13,7 @@ class ScheduleController extends ChangeNotifier {
 
   final SchedionApiService _api;
   final StorageService _storage;
-  final TodayWidgetService _widget;
+  final TodayScheduleWidgetService _widget;
 
   ScheduleController({
     required this._api,
