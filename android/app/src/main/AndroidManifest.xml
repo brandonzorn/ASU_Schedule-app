@@ -29,7 +29,7 @@
 
         <receiver
             android:name=".TodayScheduleWidget"
-            android:exported="true"
+            android:exported="false"
             tools:targetApi="26">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
