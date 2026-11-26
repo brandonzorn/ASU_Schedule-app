@@ -172,4 +172,16 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get errorInvalidData => 'Сервер вернул некорректные данные';
+
+  @override
+  String get resetFilters => 'Сбросить фильтры';
+
+  @override
+  String get cachedDataNotice =>
+      'Показаны сохранённые данные — нет связи с сервером';
+
+  @override
+  String cachedDataNoticeWithTime(String savedAt) {
+    return 'Показаны сохранённые данные от $savedAt';
+  }
 }

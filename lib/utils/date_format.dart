@@ -13,3 +13,12 @@ String formatIsoDate(String iso) {
   }
   return "${parts[2]}.${parts[1]}.${parts[0]}";
 }
+
+String formatLocalDateTime(DateTime dateTime) {
+  final DateTime local = dateTime.toLocal();
+  final String day = local.day.toString().padLeft(2, "0");
+  final String month = local.month.toString().padLeft(2, "0");
+  final String hour = local.hour.toString().padLeft(2, "0");
+  final String minute = local.minute.toString().padLeft(2, "0");
+  return "$day.$month.${local.year} $hour:$minute";
+}

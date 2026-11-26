@@ -44,11 +44,16 @@ class const WeekList({
   required final List<WeekItem> items,
 }) {
   factory WeekList.fromJson(Map<String, dynamic> json) => WeekList(
-    semesterTitle: (json["semester"]?["title"] as String?) ?? "",
+    semesterTitle: switch (json["semester"]) {
+      final Map<String, dynamic> semester => semester["title"] as String? ?? "",
+      _ => "",
+    },
     currentWeekStart: json["currentWeekStart"] as String,
     defaultWeekStart: json["defaultWeekStart"] as String,
-    items: (json["items"] as List<dynamic>)
-        .map((e) => WeekItem.fromJson(e as Map<String, dynamic>))
-        .toList(growable: false),
+    items:
+        (json["items"] as List<dynamic>?)
+            ?.map((e) => WeekItem.fromJson(e as Map<String, dynamic>))
+            .toList(growable: false) ??
+        const <WeekItem>[],
   );
 }

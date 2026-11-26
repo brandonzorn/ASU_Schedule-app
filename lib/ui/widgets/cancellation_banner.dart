@@ -16,10 +16,13 @@ class CancellationBanner extends StatelessWidget {
     final Color background = colorScheme.tertiaryContainer;
     final Color foreground = colorScheme.onTertiaryContainer;
 
-    final String text = cancellation.pairs.isEmpty
-        ? "${i18n.lessonsCanceled} (${cancellation.scope}): ${cancellation.reason}"
-        : "${i18n.canceledPairs} ${cancellation.pairs.join(", ")} "
-              "(${cancellation.scope}): ${cancellation.reason}";
+    final String prefix = cancellation.pairs.isEmpty
+        ? i18n.lessonsCanceled
+        : "${i18n.canceledPairs} ${cancellation.pairs.join(", ")}";
+    final String scope = cancellation.scope.trim();
+    final String reason = cancellation.reason.trim();
+    final String header = scope.isEmpty ? prefix : "$prefix ($scope)";
+    final String text = reason.isEmpty ? header : "$header: $reason";
 
     return Container(
       width: double.infinity,

@@ -6,6 +6,7 @@ import "package:asu_schedule/models/schedule_models.dart";
 import "package:asu_schedule/ui/widgets/filter_bottom_sheet.dart";
 import "package:asu_schedule/ui/widgets/schedule_app_bar.dart";
 import "package:asu_schedule/ui/widgets/schedule_body.dart";
+import "package:asu_schedule/ui/widgets/week_selector_bar.dart";
 import "package:material_ui/material_ui.dart";
 
 class ScheduleScreen extends StatelessWidget {
@@ -25,7 +26,7 @@ class ScheduleScreen extends StatelessWidget {
   ].whereType<int>().length;
 
   void _showFilters(BuildContext context) {
-    final ScheduleFilters? filters = controller.schedule?.filters;
+    final ScheduleFilters? filters = controller.availableFilters;
     if (filters == null) {
       return;
     }
@@ -49,6 +50,8 @@ class ScheduleScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final double weekBarHeight = WeekSelectorBar.heightFor(context);
+
     return ListenableBuilder(
       listenable: Listenable.merge(<Listenable?>[controller, themeController]),
       builder: (BuildContext context, _) {
@@ -59,9 +62,10 @@ class ScheduleScreen extends StatelessWidget {
             onThemeModeChanged: (ThemeMode mode) =>
                 unawaited(themeController.setThemeMode(mode)),
             activeFiltersCount: _activeFiltersCount,
-            onFiltersPressed: controller.schedule != null
+            onFiltersPressed: controller.availableFilters != null
                 ? () => _showFilters(context)
                 : null,
+            weekBarHeight: weekBarHeight,
           ),
           body: ScheduleBody(controller: controller),
         );

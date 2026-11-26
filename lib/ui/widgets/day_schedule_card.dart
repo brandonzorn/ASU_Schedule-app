@@ -47,7 +47,10 @@ class DayScheduleCard extends StatelessWidget {
             const Divider(height: 8),
 
             for (final ScheduleCancellation c in cancellations)
-              CancellationBanner(cancellation: c),
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: CancellationBanner(cancellation: c),
+              ),
             for (final (int index, ScheduleLesson lesson)
                 in lessons.indexed) ...<Widget>[
               LessonTile(lesson: lesson, pairInfo: pairs[lesson.pair]),

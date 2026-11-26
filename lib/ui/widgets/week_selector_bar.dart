@@ -6,15 +6,22 @@ import "package:asu_schedule/models/reference_models.dart";
 import "package:material_ui/material_ui.dart";
 
 class WeekSelectorBar extends StatefulWidget {
+  static const double baseHeight = 54;
+
+  static double heightFor(BuildContext context) =>
+      MediaQuery.textScalerOf(context).scale(baseHeight);
+
   final List<WeekItem> weeks;
   final String? selectedWeekStart;
   final ValueChanged<String> onWeekSelected;
+  final double? height;
 
   const WeekSelectorBar({
     required this.weeks,
     required this.selectedWeekStart,
     required this.onWeekSelected,
     super.key,
+    this.height,
   });
 
   @override
@@ -60,7 +67,7 @@ class _WeekSelectorBarState extends State<WeekSelectorBar> {
   Widget build(BuildContext context) {
     final AppLocalizations i18n = AppLocalizations.of(context)!;
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
-    final double scaledHeight = MediaQuery.textScalerOf(context).scale(54);
+    final double scaledHeight = widget.height ?? WeekSelectorBar.heightFor(context);
     return SizedBox(
       height: scaledHeight,
       child: SingleChildScrollView(

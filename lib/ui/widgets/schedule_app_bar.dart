@@ -8,13 +8,12 @@ import "package:asu_schedule/ui/widgets/week_selector_bar.dart";
 import "package:material_ui/material_ui.dart";
 
 class ScheduleAppBar extends StatelessWidget implements PreferredSizeWidget {
-  static const double _weekBarHeight = 54;
-
   final ScheduleController controller;
   final ThemeMode themeMode;
   final ValueChanged<ThemeMode> onThemeModeChanged;
   final int activeFiltersCount;
   final VoidCallback? onFiltersPressed;
+  final double weekBarHeight;
 
   const ScheduleAppBar({
     required this.controller,
@@ -23,11 +22,12 @@ class ScheduleAppBar extends StatelessWidget implements PreferredSizeWidget {
     required this.activeFiltersCount,
     required this.onFiltersPressed,
     super.key,
+    this.weekBarHeight = WeekSelectorBar.baseHeight,
   });
 
   @override
   Size get preferredSize => Size.fromHeight(
-    kToolbarHeight + (controller.weekList != null ? _weekBarHeight : 0),
+    kToolbarHeight + (controller.weekList != null ? weekBarHeight : 0),
   );
 
   @override
@@ -46,11 +46,12 @@ class ScheduleAppBar extends StatelessWidget implements PreferredSizeWidget {
       ],
       bottom: switch (controller.weekList) {
         final weekList? => PreferredSize(
-          preferredSize: const Size.fromHeight(_weekBarHeight),
+          preferredSize: Size.fromHeight(weekBarHeight),
           child: WeekSelectorBar(
             weeks: weekList.items,
             selectedWeekStart: controller.selectedWeek,
             onWeekSelected: controller.selectWeek,
+            height: weekBarHeight,
           ),
         ),
         null => null,

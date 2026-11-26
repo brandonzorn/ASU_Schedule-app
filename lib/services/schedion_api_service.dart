@@ -1,18 +1,22 @@
 import "dart:developer";
 
+import "package:asu_schedule/models/cached_json.dart";
 import "package:asu_schedule/models/reference_models.dart";
 import "package:asu_schedule/models/schedule_models.dart";
 import "package:asu_schedule/services/api/api_config.dart";
 import "package:asu_schedule/services/storage_service.dart";
 import "package:dio/dio.dart";
 
+typedef CachedResult<T> = ({T data, bool fromCache, DateTime? savedAt});
+
 class SchedionApiService {
   static const String _logName = "SchedionApi";
 
-  final Dio _dio = SchedionApiConfig.createDio();
+  final Dio _dio;
   final StorageService _storage;
 
-  SchedionApiService(this._storage);
+  SchedionApiService(this._storage, {Dio? dio})
+    : _dio = dio ?? SchedionApiConfig.createDio();
 
   Future<Response<dynamic>> _requestWithRetry(
     Future<Response<dynamic>> Function() request,
@@ -52,9 +56,18 @@ class SchedionApiService {
   String _errorMessage(DioException e) {
     final dynamic data = e.response?.data;
     if (data is Map<String, dynamic>) {
-      final String title = data["title"]?.toString() ?? "errorRequest";
-      final String detail = data["detail"]?.toString() ?? "";
-      return detail.isEmpty ? title : "$title. $detail";
+      final String title = data["title"]?.toString().trim() ?? "";
+      final String detail = data["detail"]?.toString().trim() ?? "";
+      if (title.isNotEmpty && detail.isNotEmpty) {
+        return "$title. $detail";
+      }
+      if (title.isNotEmpty) {
+        return title;
+      }
+      if (detail.isNotEmpty) {
+        return detail;
+      }
+      return "errorRequest";
     }
     final int? status = e.response?.statusCode;
     if (status != null) {
@@ -63,15 +76,16 @@ class SchedionApiService {
     return "errorConnection";
   }
 
-  Future<T?> _readCache<T>(
+  Future<CachedResult<T>?> _readCache<T>(
     String cacheKey,
     T Function(Map<String, dynamic> json) parser,
   ) async {
     try {
-      final Map<String, dynamic>? cached = await _storage.getJsonCache(
-        cacheKey,
-      );
-      return cached == null ? null : parser(cached);
+      final CachedJson? cached = await _storage.getJsonCache(cacheKey);
+      if (cached == null) {
+        return null;
+      }
+      return (data: parser(cached.data), fromCache: true, savedAt: cached.savedAt);
     } catch (e, st) {
       log(
         "Failed to read cache $cacheKey",
@@ -83,7 +97,7 @@ class SchedionApiService {
     }
   }
 
-  Future<T> _fetchWithCache<T>({
+  Future<CachedResult<T>> _fetchWithCache<T>({
     required Future<Response<dynamic>> Function() request,
     required T Function(Map<String, dynamic> json) parser,
     required String cacheKey,
@@ -106,10 +120,10 @@ class SchedionApiService {
           stackTrace: st,
         );
       }
-      return result;
+      return (data: result, fromCache: false, savedAt: null);
     } on DioException catch (e) {
       if (_canUseCache(e)) {
-        final T? cached = await _readCache(cacheKey, parser);
+        final CachedResult<T>? cached = await _readCache(cacheKey, parser);
         if (cached != null) {
           return cached;
         }
@@ -126,30 +140,32 @@ class SchedionApiService {
     }
   }
 
-  Future<Map<int, PairItem>> getPairs() {
-    return _fetchWithCache<Map<int, PairItem>>(
-      request: () => _dio.get("/pairs"),
-      cacheKey: "cache_pairs",
-      parser: (Map<String, dynamic> json) {
-        final Iterable<PairItem> items = (json["items"] as List<dynamic>).map(
-          (e) => PairItem.fromJson(e as Map<String, dynamic>),
+  Future<Map<int, PairItem>> getPairs() async {
+    final CachedResult<Map<int, PairItem>> result =
+        await _fetchWithCache<Map<int, PairItem>>(
+          request: () => _dio.get("/pairs"),
+          cacheKey: "cache_pairs",
+          parser: (Map<String, dynamic> json) {
+            final Iterable<PairItem> items = (json["items"] as List<dynamic>)
+                .map((e) => PairItem.fromJson(e as Map<String, dynamic>));
+            return <int, PairItem>{
+              for (final PairItem item in items) item.number: item,
+            };
+          },
         );
-        return <int, PairItem>{
-          for (final PairItem item in items) item.number: item,
-        };
-      },
-    );
+    return result.data;
   }
 
-  Future<WeekList> getWeeks() {
-    return _fetchWithCache<WeekList>(
+  Future<WeekList> getWeeks() async {
+    final CachedResult<WeekList> result = await _fetchWithCache<WeekList>(
       request: () => _dio.get("/weeks"),
       cacheKey: "cache_weeks",
       parser: WeekList.fromJson,
     );
+    return result.data;
   }
 
-  Future<ScheduleWeek> getSchedule({
+  Future<CachedResult<ScheduleWeek>> getSchedule({
     String? week,
     int? groupId,
     int? course,

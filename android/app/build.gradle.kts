@@ -29,11 +29,6 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
-
-        ndk {
-            abiFilters.clear()
-            abiFilters.addAll(listOf("arm64-v8a"))
-        }
     }
 
     signingConfigs {
@@ -49,7 +44,16 @@ android {
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("release")
+            signingConfig = if (hasReleaseKey) {
+                signingConfigs.getByName("release")
+            } else {
+                signingConfigs.getByName("debug")
+            }
+
+            ndk {
+                abiFilters.clear()
+                abiFilters.addAll(listOf("arm64-v8a"))
+            }
         }
     }
 }

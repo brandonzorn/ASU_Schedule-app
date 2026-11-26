@@ -59,5 +59,8 @@
   "errorRequest": "Request error",
   "errorServer": "Server error ({status})",
   "errorConnection": "Connection error",
-  "errorInvalidData": "Server returned invalid data"
+  "errorInvalidData": "Server returned invalid data",
+  "resetFilters": "Reset filters",
+  "cachedDataNotice": "Showing cached data — unable to reach the server",
+  "cachedDataNoticeWithTime": "Showing cached data from {savedAt}"
 }

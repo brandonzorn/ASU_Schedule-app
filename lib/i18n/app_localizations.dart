@@ -386,6 +386,24 @@ abstract class AppLocalizations {
   /// In ru, this message translates to:
   /// **'Сервер вернул некорректные данные'**
   String get errorInvalidData;
+
+  /// No description provided for @resetFilters.
+  ///
+  /// In ru, this message translates to:
+  /// **'Сбросить фильтры'**
+  String get resetFilters;
+
+  /// No description provided for @cachedDataNotice.
+  ///
+  /// In ru, this message translates to:
+  /// **'Показаны сохранённые данные — нет связи с сервером'**
+  String get cachedDataNotice;
+
+  /// Баннер при отображении кэшированного расписания с временем сохранения
+  ///
+  /// In ru, this message translates to:
+  /// **'Показаны сохранённые данные от {savedAt}'**
+  String cachedDataNoticeWithTime(String savedAt);
 }
 
 class _AppLocalizationsDelegate

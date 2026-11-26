@@ -5,6 +5,7 @@ import "package:asu_schedule/models/reference_models.dart";
 import "package:asu_schedule/models/schedule_models.dart";
 import "package:asu_schedule/services/schedion_api_service.dart";
 import "package:asu_schedule/services/storage_service.dart";
+import "package:asu_schedule/utils/schedule_day_grouping.dart";
 import "package:flutter/foundation.dart";
 
 class ScheduleController extends ChangeNotifier {
@@ -18,6 +19,8 @@ class ScheduleController extends ChangeNotifier {
   Map<int, PairItem> pairs = <int, PairItem>{};
   WeekList? weekList;
   ScheduleWeek? schedule;
+  ScheduleFilters? _lastFilters;
+  List<DaySchedule> days = const <DaySchedule>[];
 
   String? selectedWeek;
   int? selectedCourse;
@@ -25,10 +28,19 @@ class ScheduleController extends ChangeNotifier {
   int? selectedTeacherId;
 
   bool isLoading = true;
+  bool isFromCache = false;
+  DateTime? cacheSavedAt;
   String? errorMessage;
 
   int _requestId = 0;
   bool _disposed = false;
+
+  ScheduleFilters? get availableFilters => schedule?.filters ?? _lastFilters;
+
+  bool get hasActiveFilters =>
+      selectedCourse != null ||
+      selectedGroupId != null ||
+      selectedTeacherId != null;
 
   WeekItem? get currentWeekItem => weekList?.items
       .where((WeekItem w) => w.start == selectedWeek)
@@ -63,6 +75,7 @@ class ScheduleController extends ChangeNotifier {
   }
 
   Future<void> initialize() async {
+    final int initId = ++_requestId;
     isLoading = true;
     errorMessage = null;
     notifyListeners();
@@ -70,14 +83,30 @@ class ScheduleController extends ChangeNotifier {
     try {
       final ({int? course, int? groupId, int? teacherId}) saved = await _storage
           .loadSavedFilters();
+      if (initId != _requestId) {
+        return;
+      }
       selectedCourse = saved.course;
       selectedGroupId = saved.groupId;
       selectedTeacherId = saved.teacherId;
+    } on Object catch (e, st) {
+      log(
+        "Failed to load saved filters",
+        name: _logName,
+        error: e,
+        stackTrace: st,
+      );
+    }
 
+    try {
       final (Map<int, PairItem> pairsData, WeekList weekListData) = await (
         _api.getPairs(),
         _api.getWeeks(),
       ).wait;
+      if (initId != _requestId) {
+        return;
+      }
+
       pairs = pairsData;
       weekList = weekListData;
 
@@ -85,6 +114,9 @@ class ScheduleController extends ChangeNotifier {
 
       await loadSchedule();
     } catch (e) {
+      if (initId != _requestId) {
+        return;
+      }
       errorMessage = _messageOf(e);
       isLoading = false;
       notifyListeners();
@@ -101,7 +133,7 @@ class ScheduleController extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final ScheduleWeek result = await _api.getSchedule(
+      final CachedResult<ScheduleWeek> result = await _api.getSchedule(
         week: selectedWeek,
         course: selectedCourse,
         groupId: selectedGroupId,
@@ -111,8 +143,12 @@ class ScheduleController extends ChangeNotifier {
         return;
       }
 
-      schedule = result;
-      selectedWeek = result.weekStart;
+      schedule = result.data;
+      _lastFilters = result.data.filters;
+      days = groupScheduleByDay(result.data);
+      isFromCache = result.fromCache;
+      cacheSavedAt = result.savedAt;
+      selectedWeek = result.data.weekStart;
     } catch (e) {
       if (requestId != _requestId) {
         return;
@@ -121,6 +157,9 @@ class ScheduleController extends ChangeNotifier {
       errorMessage = _messageOf(e);
       if (showLoading) {
         schedule = null;
+        days = const <DaySchedule>[];
+        isFromCache = false;
+        cacheSavedAt = null;
       }
     } finally {
       if (requestId == _requestId) {
@@ -139,12 +178,14 @@ class ScheduleController extends ChangeNotifier {
   }
 
   void selectWeek(String weekStart) {
-    if (selectedWeek == weekStart) {
+    if (selectedWeek == weekStart && schedule != null) {
       return;
     }
     selectedWeek = weekStart;
     unawaited(loadSchedule());
   }
+
+  Future<void> resetFilters() => applyFilters();
 
   Future<void> applyFilters({int? course, int? groupId, int? teacherId}) async {
     if (selectedCourse == course &&

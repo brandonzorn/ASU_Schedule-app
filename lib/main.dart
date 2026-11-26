@@ -64,10 +64,7 @@ class SchedionApp extends StatelessWidget {
               theme: _buildTheme(Brightness.light, lightDynamic),
               darkTheme: _buildTheme(Brightness.dark, darkDynamic),
               themeMode: themeController.themeMode,
-              localizationsDelegates: const <LocalizationsDelegate<dynamic>>[
-                AppLocalizations.delegate,
-                ...GlobalMaterialLocalizations.delegates,
-              ],
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
               supportedLocales: AppLocalizations.supportedLocales,
               home: ScheduleScreen(
                 controller: controller,

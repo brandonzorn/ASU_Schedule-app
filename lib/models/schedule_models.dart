@@ -70,11 +70,13 @@ class const ScheduleCancellation({
       ScheduleCancellation(
         startDate: json["startDate"] as String,
         endDate: json["endDate"] as String,
-        pairs: (json["pairs"] as List<dynamic>).cast<int>().toList(
-          growable: false,
-        ),
-        reason: json["reason"] as String,
-        scope: json["scope"] as String,
+        pairs:
+            (json["pairs"] as List<dynamic>?)?.cast<int>().toList(
+              growable: false,
+            ) ??
+            const <int>[],
+        reason: json["reason"] as String? ?? "",
+        scope: json["scope"] as String? ?? "",
         groupId: json["groupId"] as int?,
         course: json["course"] as int?,
       );
@@ -111,15 +113,21 @@ class const ScheduleFilters({
 }) {
   factory ScheduleFilters.fromJson(Map<String, dynamic> json) =>
       ScheduleFilters(
-        groups: (json["groups"] as List<dynamic>)
-            .map((e) => GroupItem.fromJson(e as Map<String, dynamic>))
-            .toList(growable: false),
-        teachers: (json["teachers"] as List<dynamic>)
-            .map((e) => TeacherItem.fromJson(e as Map<String, dynamic>))
-            .toList(growable: false),
-        courses: (json["courses"] as List<dynamic>).cast<int>().toList(
-          growable: false,
-        ),
+        groups:
+            (json["groups"] as List<dynamic>?)
+                ?.map((e) => GroupItem.fromJson(e as Map<String, dynamic>))
+                .toList(growable: false) ??
+            const <GroupItem>[],
+        teachers:
+            (json["teachers"] as List<dynamic>?)
+                ?.map((e) => TeacherItem.fromJson(e as Map<String, dynamic>))
+                .toList(growable: false) ??
+            const <TeacherItem>[],
+        courses:
+            (json["courses"] as List<dynamic>?)?.cast<int>().toList(
+              growable: false,
+            ) ??
+            const <int>[],
       );
 }
 
@@ -131,15 +139,27 @@ class const ScheduleWeek({
   required final ScheduleFilters filters,
   final String? nextLessonDate,
 }) {
+  static String _parseIsoDatePrefix(String value) {
+    final String dateOnly = value.length >= 10 ? value.substring(0, 10) : value;
+    DateTime.parse("${dateOnly}T00:00:00Z");
+    return dateOnly;
+  }
+
   factory ScheduleWeek.fromJson(Map<String, dynamic> json) => ScheduleWeek(
-    weekStart: json["weekStart"] as String,
-    weekEnd: json["weekEnd"] as String,
-    lessons: (json["lessons"] as List<dynamic>)
-        .map((e) => ScheduleLesson.fromJson(e as Map<String, dynamic>))
-        .toList(growable: false),
-    cancellations: (json["cancellations"] as List<dynamic>)
-        .map((e) => ScheduleCancellation.fromJson(e as Map<String, dynamic>))
-        .toList(growable: false),
+    weekStart: _parseIsoDatePrefix(json["weekStart"] as String),
+    weekEnd: _parseIsoDatePrefix(json["weekEnd"] as String),
+    lessons:
+        (json["lessons"] as List<dynamic>?)
+            ?.map((e) => ScheduleLesson.fromJson(e as Map<String, dynamic>))
+            .toList(growable: false) ??
+        const <ScheduleLesson>[],
+    cancellations:
+        (json["cancellations"] as List<dynamic>?)
+            ?.map(
+              (e) => ScheduleCancellation.fromJson(e as Map<String, dynamic>),
+            )
+            .toList(growable: false) ??
+        const <ScheduleCancellation>[],
     filters: ScheduleFilters.fromJson(json["filters"] as Map<String, dynamic>),
     nextLessonDate: json["nextLessonDate"] as String?,
   );

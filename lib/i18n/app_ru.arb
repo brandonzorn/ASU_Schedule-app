@@ -112,5 +112,14 @@
     }
   },
   "errorConnection": "Ошибка соединения с сервером",
-  "errorInvalidData": "Сервер вернул некорректные данные"
+  "errorInvalidData": "Сервер вернул некорректные данные",
+  "resetFilters": "Сбросить фильтры",
+  "cachedDataNotice": "Показаны сохранённые данные — нет связи с сервером",
+  "cachedDataNoticeWithTime": "Показаны сохранённые данные от {savedAt}",
+  "@cachedDataNoticeWithTime": {
+    "description": "Баннер при отображении кэшированного расписания с временем сохранения",
+    "placeholders": {
+      "savedAt": { "type": "String" }
+    }
+  }
 }

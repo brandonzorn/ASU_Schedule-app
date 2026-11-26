@@ -172,4 +172,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errorInvalidData => 'Server returned invalid data';
+
+  @override
+  String get resetFilters => 'Reset filters';
+
+  @override
+  String get cachedDataNotice =>
+      'Showing cached data — unable to reach the server';
+
+  @override
+  String cachedDataNoticeWithTime(String savedAt) {
+    return 'Showing cached data from $savedAt';
+  }
 }

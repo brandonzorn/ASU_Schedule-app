@@ -30,9 +30,9 @@ class LessonTile extends StatelessWidget {
         lesson.teachers.map((ScheduleTeacher t) => t.shortName).join(", "),
     ];
 
-    final String cancellationText = _has(lesson.cancellationReason)
-        ? i18n.canceledReason(lesson.cancellationReason)
-        : i18n.lessonCanceled;
+    final String? cancellationText = isCancelled
+        ? i18n.canceledReason(lesson.cancellationReason!.trim())
+        : null;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
@@ -86,7 +86,7 @@ class LessonTile extends StatelessWidget {
                       color: colorScheme.onSurfaceVariant,
                     ),
                   ),
-                if (isCancelled)
+                if (cancellationText != null)
                   Container(
                     margin: const EdgeInsets.only(top: 2),
                     padding: const EdgeInsets.symmetric(
