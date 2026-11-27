@@ -39,7 +39,7 @@ class TodayScheduleWidget : AppWidgetProvider() {
     }
 
     override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action == ACTION_MIDNIGHT) {
+        if (intent.action in REFRESH_ACTIONS) {
             val manager = AppWidgetManager.getInstance(context)
             val ids =
                 manager.getAppWidgetIds(ComponentName(context, TodayScheduleWidget::class.java))
@@ -67,6 +67,11 @@ class TodayScheduleWidget : AppWidgetProvider() {
 
     private companion object {
         const val ACTION_MIDNIGHT = "com.bzorn.asu_schedule.ACTION_TODAY_WIDGET_MIDNIGHT"
+        val REFRESH_ACTIONS = setOf(
+            ACTION_MIDNIGHT,
+            Intent.ACTION_TIME_CHANGED,
+            Intent.ACTION_TIMEZONE_CHANGED,
+        )
     }
 }
 
