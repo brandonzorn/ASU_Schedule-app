@@ -46,5 +46,12 @@
             style="@style/WidgetTodaySchedule.ItemMeta"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
+
+        <TextView
+            android:id="@+id/item_status"
+            style="@style/WidgetTodaySchedule.ItemStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone" />
     </LinearLayout>
 </LinearLayout>

@@ -75,8 +75,6 @@ class LessonTile extends StatelessWidget {
                     color: isCancelled
                         ? colorScheme.onSurfaceVariant
                         : colorScheme.onSurface,
-                    decoration: isCancelled ? TextDecoration.lineThrough : null,
-                    decorationColor: colorScheme.onSurfaceVariant,
                   ),
                 ),
                 if (metaTags.isNotEmpty)

@@ -4,4 +4,5 @@
     <color name="widget_primary">#9DB8FF</color>
     <color name="widget_text_primary">#E3E2E6</color>
     <color name="widget_text_secondary">#A9ACB4</color>
+    <color name="widget_cancelled">#FFB4AB</color>
 </resources>

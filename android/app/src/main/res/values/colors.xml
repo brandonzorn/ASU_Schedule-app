@@ -5,4 +5,5 @@
     <color name="widget_primary">#2563EB</color>
     <color name="widget_text_primary">#1B1B1F</color>
     <color name="widget_text_secondary">#5C5F66</color>
+    <color name="widget_cancelled">#BA1A1A</color>
 </resources>
